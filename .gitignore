@@ -23,3 +23,6 @@ Saved/
 # Visual Studio cache
 .vs/
 *.ipch
+
+# Local test
+# Content/Local/*
