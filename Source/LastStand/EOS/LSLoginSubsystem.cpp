@@ -2,17 +2,17 @@
 
 
 #include "LSLoginSubsystem.h"
-#include  "OnlineSubsystemUtils.h"
 #include "OnlineSubsystem.h"
-#include "Interfaces/OnlineUserInterface.h"
+#include "OnlineSubsystemUtils.h"
+#include "OnlineSubsystemTypes.h"
+#include "Interfaces/OnlineIdentityInterface.h"
+
 
 void ULSLoginSubsystem::LoginWithEOS(const FString& UserId, const FString& Token, const FString& LoginType)
 {
-    IOnlineSubsystem* SubsystemRef = Online::GetSubsystem(GetWorld());
-
-    if(SubsystemRef)
+    if(IOnlineSubsystem* SubsystemRef = Online::GetSubsystem(GetWorld()))
     {
-        IOnlineIdentityPtr Identity = SubsystemRef->GetIdentityInterface();
+        const IOnlineIdentityPtr Identity = SubsystemRef->GetIdentityInterface();
         if (Identity.IsValid())
         {
             FOnlineAccountCredentials Credentials;
