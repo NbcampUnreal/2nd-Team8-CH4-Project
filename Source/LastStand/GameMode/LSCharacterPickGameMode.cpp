@@ -3,7 +3,7 @@
 
 #include "LSCharacterPickGameMode.h"
 
-#include "Controller/LSCharacterPickPlayerController.h"
+#include "CharacterPick/LSCharacterPickPlayerController.h"
 #include "Kismet/GameplayStatics.h"
 
 ALSCharacterPickGameMode::ALSCharacterPickGameMode()
