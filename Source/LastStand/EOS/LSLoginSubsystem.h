@@ -14,11 +14,15 @@ class LASTSTAND_API ULSLoginSubsystem : public UGameInstanceSubsystem
 {
     GENERATED_BODY()
 
-    UFUNCTION(BlueprintCallable, Category = "LSEOSLoginSubsystem")
+public:
+    UFUNCTION(BlueprintCallable, Category = "LSEOSSubsystem")
     void LoginWithEOS(const FString& UserId, const FString& Token, const FString& LoginType);
-
-    UFUNCTION(BlueprintCallable, Category = "LSEOSLoginSubsystem")
+    UFUNCTION(BlueprintCallable, Category = "LSEOSSubsystem")
     void GetPlayerUse(const FString& UserId, const FString& Token, const FString& LoginType);
-
+    
+private:
     void LoginWithEOSComplete(int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId, const FString& ErrorString);
+
+public:
+    FDelegateHandle LoginDelegateHandle;
 };
