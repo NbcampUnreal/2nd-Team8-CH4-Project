@@ -53,6 +53,10 @@ void UMainMenuWidget::OnArcadeModeButtonClicked()
 
 void UMainMenuWidget::OnMultiplayerModeButtonClicked()
 {
+    if (ChoseMultiplayerModeWidget)
+    {
+        ChoseMultiplayerModeWidget->AddToViewport();
+    }
 }
 
 void UMainMenuWidget::OnLoginButtonClicked()

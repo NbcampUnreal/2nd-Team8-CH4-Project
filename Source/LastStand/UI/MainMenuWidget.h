@@ -37,6 +37,8 @@ private:
     void BindDelegates();
     
 private:
+    UPROPERTY(EditAnywhere, category = "UI")
+    UUserWidget *ChoseMultiplayerModeWidget;
     UPROPERTY(meta = (BindWidget))
     UButton* ArcadeModeButton;
     UPROPERTY(meta = (BindWidget))

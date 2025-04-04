@@ -10,6 +10,8 @@
 class FOnlineSessionSearch;
 class FOnlineSessionSearchResult;
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FEOSSessionSearchComplete, TSharedRef<FOnlineSessionSearch>);
+
 UCLASS()
 class LASTSTAND_API ULSSessionSubsystem : public UGameInstanceSubsystem
 {
@@ -19,24 +21,25 @@ public:
     UFUNCTION(BlueprintCallable, Category= "LSSessionSubsystem")
     void CreateSession(FName KeyName = "KeyName", FString KeyValue= "KeyValue");
     UFUNCTION(BlueprintCallable, Category= "LSSessionSubsystem")
-    void FindSessions(FName SearchKey = "KeyName", FString SearchValue = "KeyValue");
-    UFUNCTION(BlueprintCallable, Category= "LSSessionSubsystem")
     void JoinSession(const FName SessionName);
-
     UFUNCTION(BlueprintCallable, Category= "LSSessionSubsystem")
     void FindMatchmakingSession();
     UFUNCTION(BlueprintCallable, Category= "LSSessionSubsystem")
-    void FindCustomSession();
-
-private:
-    void OnCreateSessionComplete(FName SessionName, bool bWasSuccessful);
-    void OnFindSessionsComplete(bool bWasSuccessful, TSharedRef<FOnlineSessionSearch> Search);
-    void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
-public:
-    FDelegateHandle CreateSessionDelegateHandle;
-    FDelegateHandle FindSessionsDelegateHandle;
-    FDelegateHandle JoinSessionDelegateHandle;
+    void FindCustomSession(const FString SessionName);
     
 private:
+    void OnCreateSessionComplete(FName SessionName, bool bWasSuccessful);
+    void OnFindMatchmakingSessionsComplete(bool bWasSuccessful, TSharedRef<FOnlineSessionSearch> Search);
+    void OnFindCustomSessionsComplete(bool bWasSuccessful, TSharedRef<FOnlineSessionSearch> Search);
+    void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
+    
+public:
+    FEOSSessionSearchComplete OnEOSSessionSearchComplete;
+    
+private:
+    FDelegateHandle CreateSessionDelegateHandle;
+    FDelegateHandle FindMatchmakingSessionsDelegateHandle;
+    FDelegateHandle FindCustomSessionsDelegateHandle;
+    FDelegateHandle JoinSessionDelegateHandle;
     FOnlineSessionSearchResult* SessionToJoin;
 };

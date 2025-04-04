@@ -7,8 +7,6 @@
 #include "OnlineSubsystemTypes.h"
 #include "Interfaces/OnlineSessionInterface.h"
 #include "OnlineSessionSettings.h"
-#include "Interfaces/OnlineIdentityInterface.h"
-#include "Interfaces/OnlineStatsInterface.h"
 
 /** 세션 생성 */
 void ULSSessionSubsystem::CreateSession(FName KeyName, FString KeyValue)
@@ -50,35 +48,6 @@ void ULSSessionSubsystem::CreateSession(FName KeyName, FString KeyValue)
     }
 }
 
-/** 세션 찾기 */
-void ULSSessionSubsystem::FindSessions(FName SearchKey, FString SearchValue)
-{
-    IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
-    IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
-    TSharedRef<FOnlineSessionSearch> Search = MakeShared<FOnlineSessionSearch>();
-
-    // Remove the default search parameters that FOnlineSessionSearch sets up.
-    Search->QuerySettings.SearchParams.Empty();
-
-    Search->QuerySettings.Set(SearchKey, SearchValue, EOnlineComparisonOp::Equals); // Seach using our Key/Value pair
-    FindSessionsDelegateHandle =
-        Session->AddOnFindSessionsCompleteDelegate_Handle(FOnFindSessionsCompleteDelegate::CreateUObject(
-            this,
-            &ThisClass::OnFindSessionsComplete,
-            Search));
-
-    UE_LOG(LogTemp, Log, TEXT("Finding session."));
-    
-    if (!Session->FindSessions(0, Search))
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Finding session failed."));
-        // Clear our handle and reset the delegate. 
-        Session->ClearOnFindSessionsCompleteDelegate_Handle(FindSessionsDelegateHandle);
-        FindSessionsDelegateHandle.Reset();
-    }
-}
-
-/** 세션 참가 */
 void ULSSessionSubsystem::JoinSession(const FName SessionName)
 {
     IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
@@ -100,19 +69,97 @@ void ULSSessionSubsystem::JoinSession(const FName SessionName)
 
 void ULSSessionSubsystem::FindMatchmakingSession()
 {
-    FindSessions("Matchmaking", "Matchmaking Session");
+    IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
+    IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
+    TSharedRef<FOnlineSessionSearch> Search = MakeShared<FOnlineSessionSearch>();
+
+    Search->QuerySettings.SearchParams.Empty();
+
+    Search->QuerySettings.Set(FName("Matchmaking"), FString("MatchmakingSession"), EOnlineComparisonOp::Equals); // Seach using our Key/Value pair
+
+    FindMatchmakingSessionsDelegateHandle =
+        Session->AddOnFindSessionsCompleteDelegate_Handle(FOnFindSessionsCompleteDelegate::CreateUObject(
+            this,
+            &ThisClass::OnFindMatchmakingSessionsComplete,
+            Search));
+    
+
+    UE_LOG(LogTemp, Log, TEXT("Finding matchmaking session."));
+    
+    if (!Session->FindSessions(0, Search))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Finding session failed."));
+        // Clear our handle and reset the delegate. 
+        Session->ClearOnFindSessionsCompleteDelegate_Handle(FindMatchmakingSessionsDelegateHandle);
+        FindMatchmakingSessionsDelegateHandle.Reset();
+    }
 }
 
-void ULSSessionSubsystem::FindCustomSession()
+void ULSSessionSubsystem::FindCustomSession(const FString SessionName)
 {
+    IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
+    IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
+    TSharedRef<FOnlineSessionSearch> Search = MakeShared<FOnlineSessionSearch>();
+
+    Search->QuerySettings.SearchParams.Empty();
+
+    Search->QuerySettings.Set(FName("Custom"), SessionName, EOnlineComparisonOp::In);
+
+    FindCustomSessionsDelegateHandle =
+        Session->AddOnFindSessionsCompleteDelegate_Handle(FOnFindSessionsCompleteDelegate::CreateUObject(
+            this,
+            &ThisClass::OnFindCustomSessionsComplete,
+            Search));
     
+    UE_LOG(LogTemp, Log, TEXT("Finding custom session."));
+    
+    if (!Session->FindSessions(0, Search))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Finding custom failed."));
+        Session->ClearOnFindSessionsCompleteDelegate_Handle(FindCustomSessionsDelegateHandle);
+        FindCustomSessionsDelegateHandle.Reset();
+    }
 }
 
 void ULSSessionSubsystem::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
 {
+    
 }
 
-void ULSSessionSubsystem::OnFindSessionsComplete(bool bWasSuccessful, TSharedRef<FOnlineSessionSearch> Search)
+void ULSSessionSubsystem::OnFindMatchmakingSessionsComplete(bool bWasSuccessful,
+    TSharedRef<FOnlineSessionSearch> Search)
+{
+    IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
+    if (bWasSuccessful)
+    {
+        if (IOnlineSessionPtr SessionPtr = Online::GetSessionInterface(GetWorld()))
+        {
+            if (Search->SearchResults.Num() > 0)
+            {
+                for (auto SessionInSearchResult : Search->SearchResults)
+                {
+                    // Local 테스트 용
+                    FString ConnectString = "127.0.0.1:8081";
+                    if (SessionPtr->GetResolvedConnectString(SessionInSearchResult, NAME_GamePort, ConnectString))
+                    {
+                        SessionToJoin = &SessionInSearchResult; 
+                    }
+                    break; 
+                }
+                JoinSession("MatchmakingSession");  
+            }else
+            {
+                CreateSession("Matchmaking", "MatchmakingSession");
+            }
+        }
+    }else
+    {
+        CreateSession("Matchmaking", "MatchmakingSession");
+    }
+}
+
+
+void ULSSessionSubsystem::OnFindCustomSessionsComplete(bool bWasSuccessful, TSharedRef<FOnlineSessionSearch> Search)
 {
     if (bWasSuccessful)
     {
@@ -120,15 +167,18 @@ void ULSSessionSubsystem::OnFindSessionsComplete(bool bWasSuccessful, TSharedRef
         {
             if (Search->SearchResults.Num() > 0)
             {
-                
-            }else
-            {
-                CreateSession("Matchmaking Session","Matchmaking Session");
+                UE_LOG(LogTemp, Log, TEXT("세션을 찾았습니다."));
+                OnEOSSessionSearchComplete.Broadcast(Search);
+                JoinSession("CustomSession");
             }
         }
-    }else
+    }
+
+    IOnlineSessionPtr Session = Online::GetSessionInterface(GetWorld());
+    if (Session.IsValid())
     {
-        CreateSession("Matchmaking Session","Matchmaking Session");
+        Session->ClearOnFindSessionsCompleteDelegate_Handle(FindMatchmakingSessionsDelegateHandle);
+        FindMatchmakingSessionsDelegateHandle.Reset();
     }
 }
 
