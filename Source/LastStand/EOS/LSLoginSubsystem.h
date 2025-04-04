@@ -6,9 +6,9 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "LSLoginSubsystem.generated.h"
 
-/**
- * 
- */
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnEOSLoginComplete);
+
 UCLASS()
 class LASTSTAND_API ULSLoginSubsystem : public UGameInstanceSubsystem
 {
@@ -24,5 +24,6 @@ private:
     void LoginWithEOSComplete(int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId, const FString& ErrorString);
 
 public:
+    FOnEOSLoginComplete OnEOSLoginComplete;
     FDelegateHandle LoginDelegateHandle;
 };

@@ -68,8 +68,7 @@ void ULSSessionSubsystem::FindSessions(FName SearchKey, FString SearchValue)
             Search));
 
     UE_LOG(LogTemp, Log, TEXT("Finding session."));
-
-
+    
     if (!Session->FindSessions(0, Search))
     {
         UE_LOG(LogTemp, Warning, TEXT("Finding session failed."));
@@ -80,7 +79,7 @@ void ULSSessionSubsystem::FindSessions(FName SearchKey, FString SearchValue)
 }
 
 /** 세션 참가 */
-void ULSSessionSubsystem::JoinSession()
+void ULSSessionSubsystem::JoinSession(const FName SessionName)
 {
     IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
     IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
@@ -91,12 +90,22 @@ void ULSSessionSubsystem::JoinSession()
             &ThisClass::OnJoinSessionComplete));
 
     UE_LOG(LogTemp, Log, TEXT("Joining session."));
-    if (!Session->JoinSession(0, "SessionName", *SessionToJoin))
+    if (!Session->JoinSession(0, SessionName, *SessionToJoin))
     {
         UE_LOG(LogTemp, Log, TEXT("Join session failed."));
         Session->ClearOnJoinSessionCompleteDelegate_Handle(JoinSessionDelegateHandle);
         JoinSessionDelegateHandle.Reset();
-    } 
+    }
+}
+
+void ULSSessionSubsystem::FindMatchmakingSession()
+{
+    FindSessions("Matchmaking", "Matchmaking Session");
+}
+
+void ULSSessionSubsystem::FindCustomSession()
+{
+    
 }
 
 void ULSSessionSubsystem::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
@@ -105,7 +114,24 @@ void ULSSessionSubsystem::OnCreateSessionComplete(FName SessionName, bool bWasSu
 
 void ULSSessionSubsystem::OnFindSessionsComplete(bool bWasSuccessful, TSharedRef<FOnlineSessionSearch> Search)
 {
+    if (bWasSuccessful)
+    {
+        if (IOnlineSessionPtr SessionPtr = Online::GetSessionInterface(GetWorld()))
+        {
+            if (Search->SearchResults.Num() > 0)
+            {
+                
+            }else
+            {
+                CreateSession("Matchmaking Session","Matchmaking Session");
+            }
+        }
+    }else
+    {
+        CreateSession("Matchmaking Session","Matchmaking Session");
+    }
 }
+
 void ULSSessionSubsystem::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
 {
 }
