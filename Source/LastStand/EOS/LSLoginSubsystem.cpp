@@ -19,7 +19,7 @@ void ULSLoginSubsystem::LoginWithEOS(const FString& UserId, const FString& Token
             Credentials.Id = UserId;
             Credentials.Token = Token;
             Credentials.Type = LoginType;
-            Identity->OnLoginCompleteDelegates->AddUObject(this, &ULSLoginSubsystem::LoginWithEOSComplete);
+            Identity->OnLoginCompleteDelegates->AddUObject(this, &ThisClass::LoginWithEOSComplete);
             Identity->Login(0, Credentials);
         }
     }
@@ -36,6 +36,7 @@ void ULSLoginSubsystem::LoginWithEOSComplete(int32 LocalUserNum, bool bWasSucces
     if (bWasSuccessful)
     {
         UE_LOG(LogTemp, Log, TEXT("Login successful for user: %s"), *UserId.ToString());
+        OnEOSLoginComplete.Broadcast();
     }else
     {
         UE_LOG(LogTemp, Log, TEXT("Login failed: %s"), *ErrorString);
