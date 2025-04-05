@@ -18,17 +18,11 @@ class LASTSTAND_API ULSSessionSubsystem : public UGameInstanceSubsystem
     GENERATED_BODY()
 
 public:
-    UFUNCTION(BlueprintCallable, Category= "LSSessionSubsystem")
-    void CreateSession(FName KeyName = "KeyName", FString KeyValue= "KeyValue");
-    UFUNCTION(BlueprintCallable, Category= "LSSessionSubsystem")
     void JoinSession(const FName SessionName);
-    UFUNCTION(BlueprintCallable, Category= "LSSessionSubsystem")
     void FindMatchmakingSession();
-    UFUNCTION(BlueprintCallable, Category= "LSSessionSubsystem")
     void FindCustomSession(const FString SessionName);
-    
+
 private:
-    void OnCreateSessionComplete(FName SessionName, bool bWasSuccessful);
     void OnFindMatchmakingSessionsComplete(bool bWasSuccessful, TSharedRef<FOnlineSessionSearch> Search);
     void OnFindCustomSessionsComplete(bool bWasSuccessful, TSharedRef<FOnlineSessionSearch> Search);
     void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
@@ -41,5 +35,7 @@ private:
     FDelegateHandle FindMatchmakingSessionsDelegateHandle;
     FDelegateHandle FindCustomSessionsDelegateHandle;
     FDelegateHandle JoinSessionDelegateHandle;
+    FDelegateHandle EndSessionDelegateHandle;
+    FDelegateHandle DestroySessionDelegateHandle; 
     FOnlineSessionSearchResult* SessionToJoin;
 };
