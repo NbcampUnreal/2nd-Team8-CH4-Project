@@ -7,5 +7,5 @@
 
 ALSMatchmakingGameMode::ALSMatchmakingGameMode()
 {
-    GameSessionClass = ALSMatchmakingGameSession::StaticClass();
+    // GameSessionClass = ALSMatchmakingGameSession::StaticClass();
 }

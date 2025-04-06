@@ -16,10 +16,9 @@ void ULSSessionSubsystem::FindMatchmakingSession()
     TSharedRef<FOnlineSessionSearch> Search = MakeShared<FOnlineSessionSearch>();
 
     Search->QuerySettings.SearchParams.Empty();
-    Search->QuerySettings.Set(FName("Matchmaking"), FString("MatchmakingSession"), EOnlineComparisonOp::Equals);
-#if P2PMODE
-    Search->QuerySettings.Set(SEARCH_LOBBIES, true, EOnlineComparisonOp::Equals);
-#endif
+    Search->QuerySettings.Set(FName("Matchmaking"), 0, EOnlineComparisonOp::GreaterThanEquals);
+    Search->QuerySettings.Set(TEXT("LOBBYSEARCH"), true, EOnlineComparisonOp::Equals);
+    
     FindMatchmakingSessionsDelegateHandle =
         Session->AddOnFindSessionsCompleteDelegate_Handle(FOnFindSessionsCompleteDelegate::CreateUObject(
             this,
@@ -60,12 +59,12 @@ void ULSSessionSubsystem::HandleFindMatchmakingSessionsComplete(bool bWasSuccess
                 JoinSession("MatchmakingSession");
             }else
             {
-                UGameplayStatics::OpenLevel(GetWorld(), FName("EOSMatchmakingTestMap"), true, L"Listen");
+                CreateSession("Matchmaking", "MatchmakingSession");
             }
         }
     }else
     {
-        UGameplayStatics::OpenLevel(GetWorld(), FName("EOSMatchmakingTestMap"), true, L"Listen");
+        CreateSession("Matchmaking", "MatchmakingSession");
     }
 }
 
@@ -162,24 +161,59 @@ void ULSSessionSubsystem::HandleJoinSessionComplete(FName SessionName, EOnJoinSe
     JoinSessionDelegateHandle.Reset();
 }
 
-void ULSSessionSubsystem::SetupNotifications()
+
+void ULSSessionSubsystem::CreateSession(const FName KeyName, const FString KeyValue)
 {
-    // IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
-    // IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
-    //
-    // Session->AddOnSessionParticipantJoinedDelegate_Handle(FOnSessionParticipantsChangeDelegate::CreateUObject(
-    //     this,
-    //     &ThisClass::HandleParticipantChanged)); 
+    IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
+    IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
+
+    CreateSessionDelegateHandle =
+        Session->AddOnCreateSessionCompleteDelegate_Handle(FOnCreateSessionCompleteDelegate::CreateUObject(
+            this,
+            &ThisClass::HandleCreateSessionCompleted));
+
+    TSharedRef<FOnlineSessionSettings> SessionSettings = MakeShared<FOnlineSessionSettings>();
+    SessionSettings->NumPublicConnections = 3; //We will test our sessions with 2 players to keep things simple
+    SessionSettings->bShouldAdvertise = true; //This creates a public match and will be searchable.
+    SessionSettings->bUsesPresence = false;   //No presence on dedicated server. This requires a local user.
+    SessionSettings->bAllowJoinViaPresence = false;
+    SessionSettings->bAllowJoinViaPresenceFriendsOnly = false;
+    SessionSettings->bAllowInvites = false;    //Allow inviting players into session. This requires presence and a local user. 
+    SessionSettings->bAllowJoinInProgress = false; //Once the session is started, no one can join.
+    SessionSettings->bIsDedicated = false; //Session created on dedicated server.
+    SessionSettings->bUseLobbiesIfAvailable = true; //For P2P we will use a lobby instead of a session
+    SessionSettings->bUseLobbiesVoiceChatIfAvailable = true; //We will also enable voice
+    SessionSettings->bUsesStats = true; //Needed to keep track of player stats.
+    SessionSettings->Settings.Add(KeyName, FOnlineSessionSetting(0, EOnlineDataAdvertisementType::ViaOnlineService));
+
+    UE_LOG(LogTemp, Log, TEXT("Creating Lobby..."));
+
+    if (!Session->CreateSession(0, FName(KeyValue), *SessionSettings))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Failed to create Lobby!"));
+    }
 }
 
-void ULSSessionSubsystem::HandleParticipantChanged(FName EOSLobbyName, const FUniqueNetId& NetId, bool bJoined)
+void ULSSessionSubsystem::HandleCreateSessionCompleted(FName SessionName, bool bWasSuccessful)
 {
-//     if (bJoined)
-//     {
-//         UE_LOG(LogTemp, Log, TEXT("A player has joined Lobby: %s"), *EOSLobbyName.ToString()); 
-//     }
-//     else
-//     {
-//         UE_LOG(LogTemp, Log, TEXT("A player has left Lobby: %s"), *EOSLobbyName.ToString());
-//     }
+    // Tutorial 7: Callback function: This is called once our lobby is created
+
+    IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
+    IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
+    if (bWasSuccessful)
+    {
+        UE_LOG(LogTemp, Log, TEXT("Lobby: %s Created!"), *SessionName.ToString());
+        FString Map = "/Game/Local/EOSMatchmakingTestMap.EOSMatchmakingTestMap?listen";
+        FURL TravelURL;
+        TravelURL.Map = Map;
+        GetWorld()->Listen(TravelURL);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Failed to create lobby!"));
+    }
+
+    // Clear our handle and reset the delegate. 
+    Session->ClearOnCreateSessionCompleteDelegate_Handle(CreateSessionDelegateHandle);
+    CreateSessionDelegateHandle.Reset();
 }

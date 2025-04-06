@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "MainMenuWidget.generated.h"
 
+class UEditableTextBox;
 class UButton;
 /**
  * 
@@ -47,4 +48,8 @@ private:
     UButton* LoginButton;
     UPROPERTY(meta = (BindWidget))
     UButton* ExitButton;
+    
+    //Dev only
+    UPROPERTY(meta = (BindWidget))
+    UEditableTextBox* CredentialTextBox;
 };

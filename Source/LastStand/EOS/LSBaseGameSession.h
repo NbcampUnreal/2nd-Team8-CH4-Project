@@ -4,6 +4,12 @@
 #include "GameFramework/GameSession.h"
 #include "LSBaseGameSession.generated.h"
 
+
+//////////////////////////////////////////
+// 데디케이트 서버 사용을 위한 GameSession 클래스
+// 현재는 사용 X
+//////////////////////////////////////////
+
 UCLASS()
 class LASTSTAND_API ALSBaseGameSession : public AGameSession
 {

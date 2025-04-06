@@ -13,7 +13,7 @@ public class LastStand : ModuleRules
         PublicDependencyModuleNames.AddRange(new string[] { "OnlineSubsystemEOS", "OnlineSubsystem", "OnlineSubsystemUtils" });
 		PrivateIncludePaths.Add("LastStand");
         
-        PrivateDefinitions.Add("P2PMODE=0");
+        PrivateDefinitions.Add("P2PMODE=1");
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
 		
