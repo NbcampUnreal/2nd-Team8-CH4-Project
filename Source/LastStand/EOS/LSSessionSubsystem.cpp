@@ -17,11 +17,13 @@ void ULSSessionSubsystem::FindMatchmakingSession()
 
     Search->QuerySettings.SearchParams.Empty();
     Search->QuerySettings.Set(FName("Matchmaking"), FString("MatchmakingSession"), EOnlineComparisonOp::Equals);
-
+#if P2PMODE
+    Search->QuerySettings.Set(SEARCH_LOBBIES, true, EOnlineComparisonOp::Equals);
+#endif
     FindMatchmakingSessionsDelegateHandle =
         Session->AddOnFindSessionsCompleteDelegate_Handle(FOnFindSessionsCompleteDelegate::CreateUObject(
             this,
-            &ThisClass::OnFindMatchmakingSessionsComplete,
+            &ThisClass::HandleFindMatchmakingSessionsComplete,
             Search));
     
 
@@ -35,7 +37,7 @@ void ULSSessionSubsystem::FindMatchmakingSession()
     }
 }
 
-void ULSSessionSubsystem::OnFindMatchmakingSessionsComplete(bool bWasSuccessful, TSharedRef<FOnlineSessionSearch> Search)
+void ULSSessionSubsystem::HandleFindMatchmakingSessionsComplete(bool bWasSuccessful, TSharedRef<FOnlineSessionSearch> Search)
 {
     IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
     if (bWasSuccessful)
@@ -80,7 +82,7 @@ void ULSSessionSubsystem::FindCustomSession(const FString SessionName)
     FindCustomSessionsDelegateHandle =
         Session->AddOnFindSessionsCompleteDelegate_Handle(FOnFindSessionsCompleteDelegate::CreateUObject(
             this,
-            &ThisClass::OnFindCustomSessionsComplete,
+            &ThisClass::HandleFindCustomSessionsComplete,
             Search));
     
     UE_LOG(LogTemp, Log, TEXT("Finding custom session."));
@@ -93,7 +95,7 @@ void ULSSessionSubsystem::FindCustomSession(const FString SessionName)
     }
 }
 
-void ULSSessionSubsystem::OnFindCustomSessionsComplete(bool bWasSuccessful, TSharedRef<FOnlineSessionSearch> Search)
+void ULSSessionSubsystem::HandleFindCustomSessionsComplete(bool bWasSuccessful, TSharedRef<FOnlineSessionSearch> Search)
 {
     if (bWasSuccessful)
     {
@@ -124,7 +126,7 @@ void ULSSessionSubsystem::JoinSession(const FName SessionName)
     JoinSessionDelegateHandle = 
         Session->AddOnJoinSessionCompleteDelegate_Handle(FOnJoinSessionCompleteDelegate::CreateUObject(
             this,
-            &ThisClass::OnJoinSessionComplete));
+            &ThisClass::HandleJoinSessionComplete));
 
     UE_LOG(LogTemp, Log, TEXT("Joining session."));
     if (!Session->JoinSession(0, SessionName, *SessionToJoin))
@@ -135,7 +137,7 @@ void ULSSessionSubsystem::JoinSession(const FName SessionName)
     }
 }
 
-void ULSSessionSubsystem::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
+void ULSSessionSubsystem::HandleJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
 {
     IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
     IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
@@ -145,8 +147,7 @@ void ULSSessionSubsystem::OnJoinSessionComplete(FName SessionName, EOnJoinSessio
         FString ConnectString;
         if (Session->GetResolvedConnectString(SessionName, ConnectString))
         {
-            APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-            if (PlayerController)
+            if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
             {
                 PlayerController->ClientTravel(ConnectString, ETravelType::TRAVEL_Absolute);
             }
@@ -159,4 +160,26 @@ void ULSSessionSubsystem::OnJoinSessionComplete(FName SessionName, EOnJoinSessio
 
     Session->ClearOnJoinSessionCompleteDelegate_Handle(JoinSessionDelegateHandle);
     JoinSessionDelegateHandle.Reset();
+}
+
+void ULSSessionSubsystem::SetupNotifications()
+{
+    // IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
+    // IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
+    //
+    // Session->AddOnSessionParticipantJoinedDelegate_Handle(FOnSessionParticipantsChangeDelegate::CreateUObject(
+    //     this,
+    //     &ThisClass::HandleParticipantChanged)); 
+}
+
+void ULSSessionSubsystem::HandleParticipantChanged(FName EOSLobbyName, const FUniqueNetId& NetId, bool bJoined)
+{
+//     if (bJoined)
+//     {
+//         UE_LOG(LogTemp, Log, TEXT("A player has joined Lobby: %s"), *EOSLobbyName.ToString()); 
+//     }
+//     else
+//     {
+//         UE_LOG(LogTemp, Log, TEXT("A player has left Lobby: %s"), *EOSLobbyName.ToString());
+//     }
 }

@@ -21,12 +21,14 @@ public:
     void JoinSession(const FName SessionName);
     void FindMatchmakingSession();
     void FindCustomSession(const FString SessionName);
-
-private:
-    void OnFindMatchmakingSessionsComplete(bool bWasSuccessful, TSharedRef<FOnlineSessionSearch> Search);
-    void OnFindCustomSessionsComplete(bool bWasSuccessful, TSharedRef<FOnlineSessionSearch> Search);
-    void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
+    void SetupNotifications();
     
+private:
+    void HandleFindMatchmakingSessionsComplete(bool bWasSuccessful, TSharedRef<FOnlineSessionSearch> Search);
+    void HandleFindCustomSessionsComplete(bool bWasSuccessful, TSharedRef<FOnlineSessionSearch> Search);
+    void HandleJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
+    void HandleParticipantChanged(FName EOSLobbyName, const FUniqueNetId& NetId, bool bJoined); 
+ 
 public:
     FEOSSessionSearchComplete OnEOSSessionSearchComplete;
     

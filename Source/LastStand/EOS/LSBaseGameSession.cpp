@@ -81,18 +81,18 @@ void ALSBaseGameSession::CreateSession(FName KeyName, FString KeyValue)
             &ThisClass::HandleCreateSessionCompleted));
     
     TSharedRef<FOnlineSessionSettings> SessionSettings = MakeShared<FOnlineSessionSettings>();
-    SessionSettings->NumPublicConnections = MaxNumberOfPlayersInSession; //We will test our sessions with 2 players to keep things simple
-    SessionSettings->bShouldAdvertise = true; //This creates a public match and will be searchable. This will set the session as joinable via presence. 
+    SessionSettings->NumPublicConnections = 2; //We will test our sessions with 2 players to keep things simple
+    SessionSettings->bShouldAdvertise = true; //This creates a public match and will be searchable.
     SessionSettings->bUsesPresence = false;   //No presence on dedicated server. This requires a local user.
-    SessionSettings->bAllowJoinViaPresence = false; // superset by bShouldAdvertise and will be true on the backend
-    SessionSettings->bAllowJoinViaPresenceFriendsOnly = false; // superset by bShouldAdvertise and will be true on the backend
+    SessionSettings->bAllowJoinViaPresence = false;
+    SessionSettings->bAllowJoinViaPresenceFriendsOnly = false;
     SessionSettings->bAllowInvites = false;    //Allow inviting players into session. This requires presence and a local user. 
     SessionSettings->bAllowJoinInProgress = false; //Once the session is started, no one can join.
     SessionSettings->bIsDedicated = false; //Session created on dedicated server.
-    SessionSettings->bUseLobbiesIfAvailable = false; //This is an EOS Session not an EOS Lobby as they aren't supported on Dedicated Servers.
-    SessionSettings->bUseLobbiesVoiceChatIfAvailable = false;
+    SessionSettings->bUseLobbiesIfAvailable = true; //For P2P we will use a lobby instead of a session
+    SessionSettings->bUseLobbiesVoiceChatIfAvailable = true; //We will also enable voice
     SessionSettings->bUsesStats = true; //Needed to keep track of player stats.
-
+    
     SessionSettings->Settings.Add(KeyName, FOnlineSessionSetting((KeyValue), EOnlineDataAdvertisementType::ViaOnlineService));
 
     UE_LOG(LogTemp, Log, TEXT("Creating session..."));
@@ -100,8 +100,6 @@ void ALSBaseGameSession::CreateSession(FName KeyName, FString KeyValue)
     if (!Session->CreateSession(0, SessionName, *SessionSettings))
     {
         UE_LOG(LogTemp, Warning, TEXT("Failed to create session!"));
-        Session->ClearOnCreateSessionCompleteDelegate_Handle(CreateSessionDelegateHandle);
-        CreateSessionDelegateHandle.Reset();
     }
 }
 
