@@ -4,24 +4,25 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
-#include "LSCharacterPickGameMode.generated.h"
+#include "LSPickGameMode.generated.h"
 
 class ALSCharacter;
 /**
  * 
  */
 UCLASS()
-class LASTSTAND_API ALSCharacterPickGameMode : public AGameMode
+class LASTSTAND_API ALSPickGameMode : public AGameMode
 {
 	GENERATED_BODY()
 
 public:
-	ALSCharacterPickGameMode();
+	ALSPickGameMode();
     
     UFUNCTION(BlueprintCallable)
 	void GameStart();
 
     void CheckAllLoaded();
+    void CheckAllPlayerPick();
 
     
 };
