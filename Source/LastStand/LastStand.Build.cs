@@ -10,8 +10,13 @@ public class LastStand : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
         PublicIncludePaths.AddRange(new string[] {
+            Path.Combine(ModuleDirectory, "LastStand"),
+            Path.Combine(ModuleDirectory, "AI"),
             Path.Combine(ModuleDirectory, "Character"),
-            Path.Combine(ModuleDirectory, "Controller")
+            Path.Combine(ModuleDirectory, "Data"),
+            Path.Combine(ModuleDirectory, "EOS"),
+            Path.Combine(ModuleDirectory, "Gamemode"),
+            Path.Combine(ModuleDirectory, "Player")
         });
 
         PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "AIModule", "UMG", "AnimGraphRuntime", "Slate", "SlateCore", "NavigationSystem" });
