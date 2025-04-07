@@ -4,18 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
-#include "LSGameDataSubSystem.generated.h"
+#include "LSGameDataSubsystem.generated.h"
 
+class ULSCharacterDataAsset;
 /**
  * 
  */
 UCLASS()
-class LASTSTAND_API ULSGameDataSubSystem : public UGameInstanceSubsystem
+class LASTSTAND_API ULSGameDataSubsystem : public UGameInstanceSubsystem
 {
     GENERATED_BODY()
 
 public:
-    ULSGameDataSubSystem();
+    ULSGameDataSubsystem();
 
     virtual void Initialize(FSubsystemCollectionBase& Collection) override;
     
@@ -24,5 +25,8 @@ private:
     
 public:
     UPROPERTY(BlueprintReadOnly)
-    TObjectPtr<UDataTable> CharacterTable;
+    TObjectPtr<ULSCharacterDataAsset> Character;
+    
+    UPROPERTY(BlueprintReadOnly)
+    TObjectPtr<UDataTable> Map;
 };
