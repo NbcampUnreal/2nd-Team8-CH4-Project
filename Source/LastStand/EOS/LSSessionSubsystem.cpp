@@ -143,7 +143,7 @@ int32 ULSSessionSubsystem::GetIndexOfPlayerInSession()
         }
     }
     
-    checkNoEntry(!"플레이어가 세션에 등록되어 있지 않습니다.");
+    checkNoEntry();
     return -1;
 }
 
