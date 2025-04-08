@@ -30,6 +30,21 @@ void ULSLoginSubsystem::GetPlayerUse(const FString& UserId, const FString& Token
     
 }
 
+bool ULSLoginSubsystem::GetIsPlayerLogin()
+{
+    if (IOnlineSubsystem* SubsystemRef = Online::GetSubsystem(GetWorld()))
+    {
+        const IOnlineIdentityPtr Identity = SubsystemRef->GetIdentityInterface();
+        if (Identity.IsValid())
+        {
+            bool bIsLoggedIn = Identity->GetLoginStatus(0) == ELoginStatus::LoggedIn;
+            UE_LOG(LogTemp, Log, TEXT("Is player logged in: %s"), bIsLoggedIn ? TEXT("true") : TEXT("false"));
+            return bIsLoggedIn;
+        }
+    }
+    return false;
+}
+
 void ULSLoginSubsystem::LoginWithEOSComplete(int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId,
                                              const FString& ErrorString)
 {
