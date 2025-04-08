@@ -24,5 +24,12 @@ Saved/
 .vs/
 *.ipch
 
+# Jetbrain Rider specific files
+Plugins/**/RiderLink/*
+*.sln.DotSettings.user
+
 # Local test
 Content/Local/
+
+# EOS SDK
+SDK/
