@@ -3,9 +3,27 @@
 
 #include "LSMatchmakingGameMode.h"
 
-#include "EOS/LSMatchmakingGameSession.h"
+#include "OnlineSubsystem.h"
+#include "OnlineSubsystemUtils.h"
+#include "Interfaces/OnlineSessionInterface.h"
 
-ALSMatchmakingGameMode::ALSMatchmakingGameMode()
+
+void ALSMatchmakingGameMode::BeginPlay()
 {
-    // GameSessionClass = ALSMatchmakingGameSession::StaticClass();
+    Super::BeginPlay();
+
+    
+}
+
+void ALSMatchmakingGameMode::PostLogin(APlayerController* NewPlayerController)
+{
+    Super::PostLogin(NewPlayerController);
+
+    UE_LOG(LogTemp, Log, TEXT("Player joined: %s"), *NewPlayerController->GetName());
+    NumberOfPlayers++;
+    if (NumberOfPlayers >= MaxNumberOfPlayers)
+    {
+        const FString Map = "/Game/LastStand/Maps/CharacterPick";
+        GetWorld()->ServerTravel(Map,false);
+    }
 }

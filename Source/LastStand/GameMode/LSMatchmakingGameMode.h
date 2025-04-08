@@ -14,5 +14,12 @@ class LASTSTAND_API ALSMatchmakingGameMode : public AGameMode
 {
     GENERATED_BODY()
 
-    ALSMatchmakingGameMode();
+protected:
+    virtual void BeginPlay() override;
+    virtual void PostLogin(APlayerController* NewPlayerController) override;
+    
+private:
+    FDelegateHandle JoinPlayerDelegateHandle;
+    int32 MaxNumberOfPlayers = 2;
+    int32 NumberOfPlayers = 0;
 };

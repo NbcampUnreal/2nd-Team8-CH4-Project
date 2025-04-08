@@ -24,6 +24,7 @@ private:
     void LoginWithEOSComplete(int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId, const FString& ErrorString);
 
 public:
+    UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "LSEOSSubsystem")
     FOnEOSLoginComplete OnEOSLoginComplete;
     FDelegateHandle LoginDelegateHandle;
 };

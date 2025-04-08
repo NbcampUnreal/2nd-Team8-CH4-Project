@@ -43,21 +43,32 @@ void ULSSessionSubsystem::HandleFindMatchmakingSessionsComplete(bool bWasSuccess
     {
         if (IOnlineSessionPtr SessionPtr = Online::GetSessionInterface(GetWorld()))
         {
-            if (Search->SearchResults.Num() > 0)
+            int32 MaxPlayers = 0;
+            FOnlineSessionSearchResult* BestSession = nullptr;
+
+            for (auto& SessionInSearchResult : Search->SearchResults)
             {
-                for (auto SessionInSearchResult : Search->SearchResults)
+                int32 CurrentPlayers = SessionInSearchResult.Session.NumOpenPublicConnections;
+                UE_LOG(LogTemp, Log, TEXT("Session PlayerNums : %d"), CurrentPlayers);
+                if (CurrentPlayers > MaxPlayers)
                 {
-                    FString ConnectString;
-                    if (SessionPtr->GetResolvedConnectString(SessionInSearchResult, NAME_GamePort, ConnectString))
-                    {
-                        SessionToJoin = &SessionInSearchResult;
-                        FString OwnerIP = SessionInSearchResult.Session.OwningUserId->ToString();
-                        UE_LOG(LogTemp, Log, TEXT("Session Owner IP: %s"), *OwnerIP);
-                    }
-                    break;
+                    MaxPlayers = CurrentPlayers;
+                    BestSession = &SessionInSearchResult;
+                }
+            }
+
+            if (BestSession)
+            {
+                FString ConnectString;
+                if (SessionPtr->GetResolvedConnectString(*BestSession, NAME_GamePort, ConnectString))
+                {
+                    SessionToJoin = BestSession;
+                    FString OwnerIP = BestSession->Session.OwningUserId->ToString();
+                    UE_LOG(LogTemp, Log, TEXT("Session Owner IP: %s"), *OwnerIP);
                 }
                 JoinSession("MatchmakingSession");
-            }else
+            }
+            else
             {
                 CreateSession("Matchmaking", "MatchmakingSession");
             }
@@ -92,6 +103,28 @@ void ULSSessionSubsystem::FindCustomSession(const FString SessionName)
         Session->ClearOnFindSessionsCompleteDelegate_Handle(FindCustomSessionsDelegateHandle);
         FindCustomSessionsDelegateHandle.Reset();
     }
+}
+
+int32 ULSSessionSubsystem::GetNumOfPlayersInSession()
+{
+    int32 NumPlayers = 0;
+    if (IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld()))
+    {
+        if (IOnlineSessionPtr Session = Subsystem->GetSessionInterface())
+        {
+            if (FNamedOnlineSession* NamedSession = Session->GetNamedSession(NAME_GameSession))
+            {
+                NumPlayers = NamedSession->RegisteredPlayers.Num();
+            }
+        }
+    }
+    return NumPlayers;
+}
+
+int32 ULSSessionSubsystem::GetIndexOfPlayerInSession()
+{
+    
+    return 0;
 }
 
 void ULSSessionSubsystem::HandleFindCustomSessionsComplete(bool bWasSuccessful, TSharedRef<FOnlineSessionSearch> Search)
@@ -173,7 +206,7 @@ void ULSSessionSubsystem::CreateSession(const FName KeyName, const FString KeyVa
             &ThisClass::HandleCreateSessionCompleted));
 
     TSharedRef<FOnlineSessionSettings> SessionSettings = MakeShared<FOnlineSessionSettings>();
-    SessionSettings->NumPublicConnections = 3; //We will test our sessions with 2 players to keep things simple
+    SessionSettings->NumPublicConnections = 2; //We will test our sessions with 2 players to keep things simple
     SessionSettings->bShouldAdvertise = true; //This creates a public match and will be searchable.
     SessionSettings->bUsesPresence = false;   //No presence on dedicated server. This requires a local user.
     SessionSettings->bAllowJoinViaPresence = false;
@@ -203,10 +236,9 @@ void ULSSessionSubsystem::HandleCreateSessionCompleted(FName SessionName, bool b
     if (bWasSuccessful)
     {
         UE_LOG(LogTemp, Log, TEXT("Lobby: %s Created!"), *SessionName.ToString());
-        FString Map = "/Game/Local/EOSMatchmakingTestMap.EOSMatchmakingTestMap?listen";
-        FURL TravelURL;
-        TravelURL.Map = Map;
-        GetWorld()->Listen(TravelURL);
+        const FString Map = "/Game/Local/EOSMatchmakingTestMap?listen";
+        GetWorld()->ServerTravel(Map, false);
+        
     }
     else
     {
