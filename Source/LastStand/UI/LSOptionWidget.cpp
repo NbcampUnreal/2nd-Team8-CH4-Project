@@ -10,34 +10,63 @@ void ULSOptionWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    if (MasterVolumeSlider)
+    if (ULSGameInstance* GI = Cast<ULSGameInstance>(GetGameInstance()))
     {
-        ULSGameInstance* GI = Cast<ULSGameInstance>(GetGameInstance());
-        if (GI)
-        {
-            MasterVolumeSlider->SetValue(GI->MasterVolume);
+        TempMasterVolume = GI->MasterVolume;
 
-            if (VolumeText)
-            {
-                VolumeText->SetText(FText::FromString(FString::Printf(TEXT("Master Volume: %.2f"), GI->MasterVolume)));
-            }
+        if (MasterVolumeSlider)
+        {
+            MasterVolumeSlider->SetValue(TempMasterVolume);
+            MasterVolumeSlider->OnValueChanged.AddDynamic(this, &ULSOptionWidget::OnMasterVolumeChanged);
         }
 
-        MasterVolumeSlider->OnValueChanged.AddDynamic(this, &ULSOptionWidget::OnMasterVolumeChanged);
+        if (VolumeText)
+        {
+            VolumeText->SetText(FText::FromString(FString::Printf(TEXT("Master Volume: %.2f"), TempMasterVolume)));
+        }
+    }
+
+    if (SaveButton)
+    {
+        SaveButton->OnClicked.AddDynamic(this, &ULSOptionWidget::OnSaveClicked);
+    }
+
+    if (ResetButton)
+    {
+        ResetButton->OnClicked.AddDynamic(this, &ULSOptionWidget::OnResetClicked);
     }
 }
 
 void ULSOptionWidget::OnMasterVolumeChanged(float Value)
 {
-    ULSGameInstance* GI = Cast<ULSGameInstance>(GetGameInstance());
-    if (GI)
-    {
-        GI->MasterVolume = Value;
-        GI->ApplyVolumeSettings();
-    }
+    TempMasterVolume = Value;
 
     if (VolumeText)
     {
         VolumeText->SetText(FText::FromString(FString::Printf(TEXT("Master Volume: %.2f"), Value)));
+    }
+}
+
+void ULSOptionWidget::OnSaveClicked()
+{
+    if (ULSGameInstance* GI = Cast<ULSGameInstance>(GetGameInstance()))
+    {
+        GI->MasterVolume = TempMasterVolume;
+        GI->ApplyVolumeSettings();
+    }
+}
+
+void ULSOptionWidget::OnResetClicked()
+{
+    TempMasterVolume = 1.0f;
+
+    if (MasterVolumeSlider)
+    {
+        MasterVolumeSlider->SetValue(TempMasterVolume);
+    }
+
+    if (VolumeText)
+    {
+        VolumeText->SetText(FText::FromString(FString::Printf(TEXT("Master Volume: %.2f"), TempMasterVolume)));
     }
 }
