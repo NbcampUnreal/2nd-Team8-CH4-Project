@@ -3,25 +3,23 @@
 
 #include "LSGameDataSubsystem.h"
 #include "LSCharacterDataAsset.h"
+#include "LSGameDataSubsystemSettings.h"
+#include "LSMapDataAsset.h"
 
-
-ULSGameDataSubsystem::ULSGameDataSubsystem()
-{
-    LoadData();
-}
 
 void ULSGameDataSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
 
-    checkf(Character, TEXT("Failed to Load CharacterTable"));
+    LoadData();
 }
 
 void ULSGameDataSubsystem::LoadData()
 {
-    static ConstructorHelpers::FObjectFinder<ULSCharacterDataAsset> CharacterDataLoader(
-        TEXT("/Script/LastStand.LSCharacterDataAsset'/Game/LastStand/Data/DA_Character.DA_Character'"));
-
-    if (CharacterDataLoader.Object)
-        Character = CharacterDataLoader.Object;
+    const ULSGameDataSubsystemSettings* DataSettings = GetDefault<ULSGameDataSubsystemSettings>();
+    Character = DataSettings->CharacterDataAsset.LoadSynchronous();
+    Map = DataSettings->MapDataAsset.LoadSynchronous();
+    
+    check(Character)
+    check(Map)
 }
