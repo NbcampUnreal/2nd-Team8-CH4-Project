@@ -18,6 +18,7 @@ protected:
     virtual void NativeConstruct() override;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
     UFUNCTION()
     void OnMasterVolumeChanged(float Value);
@@ -32,12 +33,15 @@ protected:
 
 =======
 >>>>>>> 2754f58335c4309b9588f979dad821e19cfaad30
+=======
+>>>>>>> 28e7a37 ([add]비 로그인 시 멀티플레이 버튼 잠금)
     UPROPERTY(meta = (BindWidget))
     USlider* MasterVolumeSlider;
 
     UPROPERTY(meta = (BindWidget))
     UTextBlock* VolumeText;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     UPROPERTY(meta = (BindWidget))
     UButton* SaveButton;
@@ -48,4 +52,8 @@ protected:
     UFUNCTION()
     void OnMasterVolumeChanged(float Value);
 >>>>>>> 2754f58335c4309b9588f979dad821e19cfaad30
+=======
+    UFUNCTION()
+    void OnMasterVolumeChanged(float Value);
+>>>>>>> 28e7a37 ([add]비 로그인 시 멀티플레이 버튼 잠금)
 };
