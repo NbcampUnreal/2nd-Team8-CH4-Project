@@ -123,8 +123,28 @@ int32 ULSSessionSubsystem::GetNumOfPlayersInSession()
 
 int32 ULSSessionSubsystem::GetIndexOfPlayerInSession()
 {
+    if (IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld()))
+    {
+        if (IOnlineSessionPtr Session = Subsystem->GetSessionInterface())
+        {
+            if (FNamedOnlineSession* NamedSession = Session->GetNamedSession(NAME_GameSession))
+            {
+                const TArray<TSharedRef<const FUniqueNetId>>& RegisteredPlayers = NamedSession->RegisteredPlayers;
+                const FUniqueNetIdRepl LocalPlayerId = GetWorld()->GetFirstLocalPlayerFromController()->GetPreferredUniqueNetId();
+
+                for (int32 Index = 0; Index < RegisteredPlayers.Num(); ++Index)
+                {
+                    if (*RegisteredPlayers[Index] == *LocalPlayerId)
+                    {
+                        return Index;
+                    }
+                }
+            }
+        }
+    }
     
-    return 0;
+    checkNoEntry("플레이어가 세션에 등록되어 있지 않습니다.");
+    return -1;
 }
 
 void ULSSessionSubsystem::HandleFindCustomSessionsComplete(bool bWasSuccessful, TSharedRef<FOnlineSessionSearch> Search)
