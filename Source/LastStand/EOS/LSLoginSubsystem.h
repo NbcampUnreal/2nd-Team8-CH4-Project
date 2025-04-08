@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -19,14 +19,12 @@ public:
     void LoginWithEOS(const FString& UserId, const FString& Token, const FString& LoginType);
     UFUNCTION(BlueprintCallable, Category = "LSEOSSubsystem")
     void GetPlayerUse(const FString& UserId, const FString& Token, const FString& LoginType);
-    UFUNCTION(BlueprintCallable, Category = "LSEOSSubsystem")
-    bool GetIsPlayerLogin();
     
 private:
     void LoginWithEOSComplete(int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId, const FString& ErrorString);
 
 public:
-    UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "LSEOSSubsystem")
+    UPROPERTY(BlueprintAssignable, Category = "LSEOSSubsystem")
     FOnEOSLoginComplete OnEOSLoginComplete;
     FDelegateHandle LoginDelegateHandle;
 };
