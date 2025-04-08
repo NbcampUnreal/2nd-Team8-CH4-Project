@@ -43,10 +43,10 @@ void ALSArcadeGameMode::EndGameConditions()
 
 void ALSArcadeGameMode::OnTimeExpired()
 {
-    if (ALSArcadePlayerController* PC = Cast<ALSArcadePlayerController>(*It))
-    {
-        PC->ShowResultUI();
-    }
+    // if (ALSArcadePlayerController* PC = Cast<ALSArcadePlayerController>(*It))
+    // {
+    //     PC->ShowResultUI();
+    // }
 }
   
 //void ALSArcadeGameMode::MulticastShowResult_Implementation() - MultiPlay
