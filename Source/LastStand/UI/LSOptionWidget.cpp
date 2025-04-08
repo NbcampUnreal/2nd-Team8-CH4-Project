@@ -10,6 +10,7 @@ void ULSOptionWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 
+<<<<<<< HEAD
     if (ULSGameInstance* GI = Cast<ULSGameInstance>(GetGameInstance()))
     {
         TempMasterVolume = GI->MasterVolume;
@@ -34,17 +35,43 @@ void ULSOptionWidget::NativeConstruct()
     if (ResetButton)
     {
         ResetButton->OnClicked.AddDynamic(this, &ULSOptionWidget::OnResetClicked);
+=======
+    if (MasterVolumeSlider)
+    {
+        ULSGameInstance* GI = Cast<ULSGameInstance>(GetGameInstance());
+        if (GI)
+        {
+            MasterVolumeSlider->SetValue(GI->MasterVolume);
+
+            if (VolumeText)
+            {
+                VolumeText->SetText(FText::FromString(FString::Printf(TEXT("Master Volume: %.2f"), GI->MasterVolume)));
+            }
+        }
+
+        MasterVolumeSlider->OnValueChanged.AddDynamic(this, &ULSOptionWidget::OnMasterVolumeChanged);
+>>>>>>> 2754f58335c4309b9588f979dad821e19cfaad30
     }
 }
 
 void ULSOptionWidget::OnMasterVolumeChanged(float Value)
 {
+<<<<<<< HEAD
     TempMasterVolume = Value;
+=======
+    ULSGameInstance* GI = Cast<ULSGameInstance>(GetGameInstance());
+    if (GI)
+    {
+        GI->MasterVolume = Value;
+        GI->ApplyVolumeSettings();
+    }
+>>>>>>> 2754f58335c4309b9588f979dad821e19cfaad30
 
     if (VolumeText)
     {
         VolumeText->SetText(FText::FromString(FString::Printf(TEXT("Master Volume: %.2f"), Value)));
     }
+<<<<<<< HEAD
 }
 
 void ULSOptionWidget::OnSaveClicked()
@@ -70,3 +97,6 @@ void ULSOptionWidget::OnResetClicked()
         VolumeText->SetText(FText::FromString(FString::Printf(TEXT("Master Volume: %.2f"), TempMasterVolume)));
     }
 }
+=======
+}
+>>>>>>> 2754f58335c4309b9588f979dad821e19cfaad30
