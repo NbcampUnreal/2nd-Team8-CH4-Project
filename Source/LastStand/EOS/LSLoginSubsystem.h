@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -24,6 +24,7 @@ private:
     void LoginWithEOSComplete(int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId, const FString& ErrorString);
 
 public:
+    UPROPERTY(BlueprintAssignable, Category = "LSEOSSubsystem")
     FOnEOSLoginComplete OnEOSLoginComplete;
     FDelegateHandle LoginDelegateHandle;
 };
