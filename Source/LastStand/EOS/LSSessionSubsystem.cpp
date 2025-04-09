@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "LSSessionSubsystem.h"
@@ -256,7 +256,7 @@ void ULSSessionSubsystem::HandleCreateSessionCompleted(FName SessionName, bool b
     if (bWasSuccessful)
     {
         UE_LOG(LogTemp, Log, TEXT("Lobby: %s Created!"), *SessionName.ToString());
-        const FString Map = "/Game/Local/EOSMatchmakingTestMap?listen";
+        const FString Map = "/Game/LastStand/Maps/Menu/LS_Matching?listen";
         GetWorld()->ServerTravel(Map, false);
         
     }
