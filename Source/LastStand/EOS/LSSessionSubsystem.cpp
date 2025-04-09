@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "LSSessionSubsystem.h"
@@ -73,7 +73,8 @@ void ULSSessionSubsystem::HandleFindMatchmakingSessionsComplete(bool bWasSuccess
                 CreateSession("Matchmaking", "MatchmakingSession");
             }
         }
-    }else
+    }
+    else
     {
         CreateSession("Matchmaking", "MatchmakingSession");
     }
@@ -131,6 +132,32 @@ int32 ULSSessionSubsystem::GetIndexOfPlayerInSession()
             {
                 const TArray<TSharedRef<const FUniqueNetId>>& RegisteredPlayers = NamedSession->RegisteredPlayers;
                 const FUniqueNetIdRepl LocalPlayerId = GetWorld()->GetFirstLocalPlayerFromController()->GetPreferredUniqueNetId();
+
+                for (int32 Index = 0; Index < RegisteredPlayers.Num(); ++Index)
+                {
+                    if (*RegisteredPlayers[Index] == *LocalPlayerId)
+                    {
+                        return Index;
+                    }
+                }
+            }
+        }
+    }
+
+    checkNoEntry();
+    return -1;
+}
+
+int32 ULSSessionSubsystem::GetIndexOfPlayerInSession(const APlayerController* Controller)
+{
+    if (IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld()))
+    {
+        if (IOnlineSessionPtr Session = Subsystem->GetSessionInterface())
+        {
+            if (FNamedOnlineSession* NamedSession = Session->GetNamedSession(NAME_GameSession))
+            {
+                const TArray<TSharedRef<const FUniqueNetId>>& RegisteredPlayers = NamedSession->RegisteredPlayers;
+                const FUniqueNetIdRepl LocalPlayerId = Controller->GetLocalPlayer()->GetPreferredUniqueNetId();
 
                 for (int32 Index = 0; Index < RegisteredPlayers.Num(); ++Index)
                 {
@@ -256,7 +283,7 @@ void ULSSessionSubsystem::HandleCreateSessionCompleted(FName SessionName, bool b
     if (bWasSuccessful)
     {
         UE_LOG(LogTemp, Log, TEXT("Lobby: %s Created!"), *SessionName.ToString());
-        const FString Map = "/Game/Local/EOSMatchmakingTestMap?listen";
+        const FString Map = "/Game/LastStand/Maps/Menu/LS_Matching?listen";
         GetWorld()->ServerTravel(Map, false);
         
     }

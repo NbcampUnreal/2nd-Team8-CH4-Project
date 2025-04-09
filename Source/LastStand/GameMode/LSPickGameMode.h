@@ -6,6 +6,7 @@
 #include "GameFramework/GameMode.h"
 #include "LSPickGameMode.generated.h"
 
+struct FMapData;
 class ALSCharacter;
 /**
  * 
@@ -24,5 +25,6 @@ public:
     void CheckAllLoaded();
     void CheckAllPlayerPick();
 
-    
+    UFUNCTION(BlueprintImplementableEvent)
+    void SetGameSettings(const TArray<FName>& PickCharacters, FMapData MapData);
 };

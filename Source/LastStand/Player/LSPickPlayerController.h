@@ -51,7 +51,7 @@ private:
     
     UFUNCTION(Server, Reliable, BlueprintCallable)
     void ServerPickCharacter(FName CharacterName);
-
+    
 private:
     const int32 MaxPlayerCount = 6;
     
