@@ -23,6 +23,9 @@ public:
     FString Name;
     
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    TSoftObjectPtr<UWorld> Level;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FText DisplayName;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)

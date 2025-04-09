@@ -47,11 +47,20 @@ void ALSPickPlayerController::StartPickMap()
 {
     check(HasAuthority())
 
-    for (auto Iter = GetWorld()->GetPlayerControllerIterator(); Iter; ++Iter)
+    //EOS가 매치 메이킹인지 커스텀인지로 변경
+    if (false)
     {
-        if (ALSPickPlayerController* Cont = Cast<ALSPickPlayerController>(*Iter))
+        PickMapName = GetGameInstance()->GetSubsystem<ULSGameDataSubsystem>()->Map->GetRandomMapData().Name;
+        GetWorld()->GetAuthGameMode<ALSPickGameMode>()->GameStart();
+    }
+    else
+    {
+        for (auto Iter = GetWorld()->GetPlayerControllerIterator(); Iter; ++Iter)
         {
-            Cont->ClientStartPickMap();
+            if (ALSPickPlayerController* Cont = Cast<ALSPickPlayerController>(*Iter))
+            {
+                Cont->ClientStartPickMap();
+            }
         }
     }
 }
