@@ -17,12 +17,27 @@ class LASTSTAND_API ULSOptionWidget : public ULSBaseWidget
 protected:
     virtual void NativeConstruct() override;
 
+
+    UFUNCTION()
+    void OnMasterVolumeChanged(float Value);
+
+    UFUNCTION()
+    void OnSaveClicked();
+
+    UFUNCTION()
+    void OnResetClicked();
+
+    float TempMasterVolume = 1.0f;
+
     UPROPERTY(meta = (BindWidget))
     USlider* MasterVolumeSlider;
 
     UPROPERTY(meta = (BindWidget))
     UTextBlock* VolumeText;
 
-    UFUNCTION()
-    void OnMasterVolumeChanged(float Value);
+    UPROPERTY(meta = (BindWidget))
+    UButton* SaveButton;
+
+    UPROPERTY(meta = (BindWidget))
+    UButton* ResetButton;
 };
