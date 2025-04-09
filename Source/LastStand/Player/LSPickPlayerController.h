@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "LSPickPlayerController.generated.h"
 
+class ULSMapPickWidget;
 class ULSCharacterPickWidget;
 /**
  * 
@@ -17,24 +18,37 @@ class LASTSTAND_API ALSPickPlayerController : public APlayerController
 
 public:
     UFUNCTION(Client, Reliable)
-    void ClientStartPick(int32 PlayerCount);
+    void ClientStartPickCharacter(int32 PlayerCount);
 
     UFUNCTION(Client, Reliable)
     void ClientActiveGameStartButton();
-    
+
     bool IsLoaded() const { return bLoaded; }
     FName GetPickCharacterName() const { return PickCharacterName; }
-
+    FString GetPickMapName() const { return PickMapName; }
+    
 protected:
     virtual void BeginPlay() override;
 
 private:
+    UFUNCTION(BlueprintCallable)
+    void StartPickMap();
+    
+    UFUNCTION(BlueprintCallable)
+    void PickMap(FString MapName);
+    
     UFUNCTION(Client, Reliable)
     void ClientPickCharacter(int PlayerNumber, FName CharacterName);
 
+    UFUNCTION(Client, Reliable)
+    void ClientStartPickMap();    
+    
+    UFUNCTION(Client, Reliable)
+    void ClientPickMap(const FString& MapName);
+    
     UFUNCTION(Server, Reliable)
     void ServerCompleteLoad();
-
+    
     UFUNCTION(Server, Reliable, BlueprintCallable)
     void ServerPickCharacter(FName CharacterName);
 
@@ -45,10 +59,11 @@ private:
     TSubclassOf<ULSCharacterPickWidget> CharacterPickWidgetClass;
 
     UPROPERTY(EditDefaultsOnly)
-    TSubclassOf<UUserWidget> MapPickWidgetClass;
+    TSubclassOf<ULSMapPickWidget> MapPickWidgetClass;
     
     TObjectPtr<ULSCharacterPickWidget> CharacterPickWidget;
-    TObjectPtr<UUserWidget> MapPickWidget;
+    TObjectPtr<ULSMapPickWidget> MapPickWidget;
     bool bLoaded;
     FName PickCharacterName;
+    FString PickMapName;
 };

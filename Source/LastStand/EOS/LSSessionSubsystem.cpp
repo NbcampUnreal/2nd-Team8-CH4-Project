@@ -7,65 +7,7 @@
 #include "OnlineSubsystemTypes.h"
 #include "Interfaces/OnlineSessionInterface.h"
 #include "OnlineSessionSettings.h"
-
-/** 세션 생성 */
-void ULSSessionSubsystem::CreateSession(FName KeyName, FString KeyValue)
-{
-    IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
-    IOnlineSessionPtr Session = Subsystem->GetSessionInterface(); // Retrieve the generic session interface. 
-
-    // Bind delegate to callback function
-    CreateSessionDelegateHandle =
-        Session->AddOnCreateSessionCompleteDelegate_Handle(FOnCreateSessionCompleteDelegate::CreateUObject(
-            this,
-            &ThisClass::OnCreateSessionComplete));
-    
-    // Set session settings 
-    TSharedRef<FOnlineSessionSettings> SessionSettings = MakeShared<FOnlineSessionSettings>();
-    SessionSettings->NumPublicConnections = 8; //We will test our sessions with 2 players to keep things simple
-    SessionSettings->bShouldAdvertise = true; //This creates a public match and will be searchable. This will set the session as joinable via presence. 
-    SessionSettings->bUsesPresence = false;   //No presence on dedicated server. This requires a local user.
-    SessionSettings->bAllowJoinViaPresence = false; // superset by bShouldAdvertise and will be true on the backend
-    SessionSettings->bAllowJoinViaPresenceFriendsOnly = false; // superset by bShouldAdvertise and will be true on the backend
-    SessionSettings->bAllowInvites = false;    //Allow inviting players into session. This requires presence and a local user. 
-    SessionSettings->bAllowJoinInProgress = false; //Once the session is started, no one can join.
-    SessionSettings->bIsDedicated = false; //Session created on dedicated server.
-    SessionSettings->bUseLobbiesIfAvailable = false; //This is an EOS Session not an EOS Lobby as they aren't supported on Dedicated Servers.
-    SessionSettings->bUseLobbiesVoiceChatIfAvailable = false;
-    SessionSettings->bUsesStats = true; //Needed to keep track of player stats.
-
-    // This custom attribute will be used in searches on GameClients. 
-    SessionSettings->Settings.Add(KeyName, FOnlineSessionSetting((KeyValue), EOnlineDataAdvertisementType::ViaOnlineService));
-
-    // Create session.
-    UE_LOG(LogTemp, Log, TEXT("Creating session..."));
-    
-    if (!Session->CreateSession(0, "SessionName", *SessionSettings))
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Failed to create session!"));
-        Session->ClearOnCreateSessionCompleteDelegate_Handle(CreateSessionDelegateHandle);
-        CreateSessionDelegateHandle.Reset();
-    }
-}
-
-void ULSSessionSubsystem::JoinSession(const FName SessionName)
-{
-    IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
-    IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
-
-    JoinSessionDelegateHandle = 
-        Session->AddOnJoinSessionCompleteDelegate_Handle(FOnJoinSessionCompleteDelegate::CreateUObject(
-            this,
-            &ThisClass::OnJoinSessionComplete));
-
-    UE_LOG(LogTemp, Log, TEXT("Joining session."));
-    if (!Session->JoinSession(0, SessionName, *SessionToJoin))
-    {
-        UE_LOG(LogTemp, Log, TEXT("Join session failed."));
-        Session->ClearOnJoinSessionCompleteDelegate_Handle(JoinSessionDelegateHandle);
-        JoinSessionDelegateHandle.Reset();
-    }
-}
+#include "Kismet/GameplayStatics.h"
 
 void ULSSessionSubsystem::FindMatchmakingSession()
 {
@@ -74,13 +16,13 @@ void ULSSessionSubsystem::FindMatchmakingSession()
     TSharedRef<FOnlineSessionSearch> Search = MakeShared<FOnlineSessionSearch>();
 
     Search->QuerySettings.SearchParams.Empty();
-
-    Search->QuerySettings.Set(FName("Matchmaking"), FString("MatchmakingSession"), EOnlineComparisonOp::Equals); // Seach using our Key/Value pair
-
+    Search->QuerySettings.Set(FName("Matchmaking"), 0, EOnlineComparisonOp::GreaterThanEquals);
+    Search->QuerySettings.Set(TEXT("LOBBYSEARCH"), true, EOnlineComparisonOp::Equals);
+    
     FindMatchmakingSessionsDelegateHandle =
         Session->AddOnFindSessionsCompleteDelegate_Handle(FOnFindSessionsCompleteDelegate::CreateUObject(
             this,
-            &ThisClass::OnFindMatchmakingSessionsComplete,
+            &ThisClass::HandleFindMatchmakingSessionsComplete,
             Search));
     
 
@@ -89,9 +31,51 @@ void ULSSessionSubsystem::FindMatchmakingSession()
     if (!Session->FindSessions(0, Search))
     {
         UE_LOG(LogTemp, Warning, TEXT("Finding session failed."));
-        // Clear our handle and reset the delegate. 
         Session->ClearOnFindSessionsCompleteDelegate_Handle(FindMatchmakingSessionsDelegateHandle);
         FindMatchmakingSessionsDelegateHandle.Reset();
+    }
+}
+
+void ULSSessionSubsystem::HandleFindMatchmakingSessionsComplete(bool bWasSuccessful, TSharedRef<FOnlineSessionSearch> Search)
+{
+    IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
+    if (bWasSuccessful)
+    {
+        if (IOnlineSessionPtr SessionPtr = Online::GetSessionInterface(GetWorld()))
+        {
+            int32 MaxPlayers = 0;
+            FOnlineSessionSearchResult* BestSession = nullptr;
+
+            for (auto& SessionInSearchResult : Search->SearchResults)
+            {
+                int32 CurrentPlayers = SessionInSearchResult.Session.NumOpenPublicConnections;
+                UE_LOG(LogTemp, Log, TEXT("Session PlayerNums : %d"), CurrentPlayers);
+                if (CurrentPlayers > MaxPlayers)
+                {
+                    MaxPlayers = CurrentPlayers;
+                    BestSession = &SessionInSearchResult;
+                }
+            }
+
+            if (BestSession)
+            {
+                FString ConnectString;
+                if (SessionPtr->GetResolvedConnectString(*BestSession, NAME_GamePort, ConnectString))
+                {
+                    SessionToJoin = BestSession;
+                    FString OwnerIP = BestSession->Session.OwningUserId->ToString();
+                    UE_LOG(LogTemp, Log, TEXT("Session Owner IP: %s"), *OwnerIP);
+                }
+                JoinSession("MatchmakingSession");
+            }
+            else
+            {
+                CreateSession("Matchmaking", "MatchmakingSession");
+            }
+        }
+    }else
+    {
+        CreateSession("Matchmaking", "MatchmakingSession");
     }
 }
 
@@ -108,7 +92,7 @@ void ULSSessionSubsystem::FindCustomSession(const FString SessionName)
     FindCustomSessionsDelegateHandle =
         Session->AddOnFindSessionsCompleteDelegate_Handle(FOnFindSessionsCompleteDelegate::CreateUObject(
             this,
-            &ThisClass::OnFindCustomSessionsComplete,
+            &ThisClass::HandleFindCustomSessionsComplete,
             Search));
     
     UE_LOG(LogTemp, Log, TEXT("Finding custom session."));
@@ -121,45 +105,49 @@ void ULSSessionSubsystem::FindCustomSession(const FString SessionName)
     }
 }
 
-void ULSSessionSubsystem::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
+int32 ULSSessionSubsystem::GetNumOfPlayersInSession()
 {
-    
-}
-
-void ULSSessionSubsystem::OnFindMatchmakingSessionsComplete(bool bWasSuccessful,
-    TSharedRef<FOnlineSessionSearch> Search)
-{
-    IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
-    if (bWasSuccessful)
+    int32 NumPlayers = 0;
+    if (IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld()))
     {
-        if (IOnlineSessionPtr SessionPtr = Online::GetSessionInterface(GetWorld()))
+        if (IOnlineSessionPtr Session = Subsystem->GetSessionInterface())
         {
-            if (Search->SearchResults.Num() > 0)
+            if (FNamedOnlineSession* NamedSession = Session->GetNamedSession(NAME_GameSession))
             {
-                for (auto SessionInSearchResult : Search->SearchResults)
-                {
-                    // Local 테스트 용
-                    FString ConnectString = "127.0.0.1:8081";
-                    if (SessionPtr->GetResolvedConnectString(SessionInSearchResult, NAME_GamePort, ConnectString))
-                    {
-                        SessionToJoin = &SessionInSearchResult; 
-                    }
-                    break; 
-                }
-                JoinSession("MatchmakingSession");  
-            }else
-            {
-                CreateSession("Matchmaking", "MatchmakingSession");
+                NumPlayers = NamedSession->RegisteredPlayers.Num();
             }
         }
-    }else
-    {
-        CreateSession("Matchmaking", "MatchmakingSession");
     }
+    return NumPlayers;
 }
 
+int32 ULSSessionSubsystem::GetIndexOfPlayerInSession()
+{
+    if (IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld()))
+    {
+        if (IOnlineSessionPtr Session = Subsystem->GetSessionInterface())
+        {
+            if (FNamedOnlineSession* NamedSession = Session->GetNamedSession(NAME_GameSession))
+            {
+                const TArray<TSharedRef<const FUniqueNetId>>& RegisteredPlayers = NamedSession->RegisteredPlayers;
+                const FUniqueNetIdRepl LocalPlayerId = GetWorld()->GetFirstLocalPlayerFromController()->GetPreferredUniqueNetId();
 
-void ULSSessionSubsystem::OnFindCustomSessionsComplete(bool bWasSuccessful, TSharedRef<FOnlineSessionSearch> Search)
+                for (int32 Index = 0; Index < RegisteredPlayers.Num(); ++Index)
+                {
+                    if (*RegisteredPlayers[Index] == *LocalPlayerId)
+                    {
+                        return Index;
+                    }
+                }
+            }
+        }
+    }
+    
+    checkNoEntry();
+    return -1;
+}
+
+void ULSSessionSubsystem::HandleFindCustomSessionsComplete(bool bWasSuccessful, TSharedRef<FOnlineSessionSearch> Search)
 {
     if (bWasSuccessful)
     {
@@ -182,6 +170,102 @@ void ULSSessionSubsystem::OnFindCustomSessionsComplete(bool bWasSuccessful, TSha
     }
 }
 
-void ULSSessionSubsystem::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
+void ULSSessionSubsystem::JoinSession(const FName SessionName)
 {
+    IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
+    IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
+
+    JoinSessionDelegateHandle = 
+        Session->AddOnJoinSessionCompleteDelegate_Handle(FOnJoinSessionCompleteDelegate::CreateUObject(
+            this,
+            &ThisClass::HandleJoinSessionComplete));
+
+    UE_LOG(LogTemp, Log, TEXT("Joining session."));
+    if (!Session->JoinSession(0, SessionName, *SessionToJoin))
+    {
+        UE_LOG(LogTemp, Log, TEXT("Join session failed."));
+        Session->ClearOnJoinSessionCompleteDelegate_Handle(JoinSessionDelegateHandle);
+        JoinSessionDelegateHandle.Reset();
+    }
+}
+
+void ULSSessionSubsystem::HandleJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
+{
+    IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
+    IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
+
+    if (Result == EOnJoinSessionCompleteResult::Success)
+    {
+        FString ConnectString;
+        if (Session->GetResolvedConnectString(SessionName, ConnectString))
+        {
+            if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
+            {
+                PlayerController->ClientTravel(ConnectString, ETravelType::TRAVEL_Absolute);
+            }
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Failed to join session."));
+    }
+
+    Session->ClearOnJoinSessionCompleteDelegate_Handle(JoinSessionDelegateHandle);
+    JoinSessionDelegateHandle.Reset();
+}
+
+
+void ULSSessionSubsystem::CreateSession(const FName KeyName, const FString KeyValue)
+{
+    IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
+    IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
+
+    CreateSessionDelegateHandle =
+        Session->AddOnCreateSessionCompleteDelegate_Handle(FOnCreateSessionCompleteDelegate::CreateUObject(
+            this,
+            &ThisClass::HandleCreateSessionCompleted));
+
+    TSharedRef<FOnlineSessionSettings> SessionSettings = MakeShared<FOnlineSessionSettings>();
+    SessionSettings->NumPublicConnections = 2; //We will test our sessions with 2 players to keep things simple
+    SessionSettings->bShouldAdvertise = true; //This creates a public match and will be searchable.
+    SessionSettings->bUsesPresence = false;   //No presence on dedicated server. This requires a local user.
+    SessionSettings->bAllowJoinViaPresence = false;
+    SessionSettings->bAllowJoinViaPresenceFriendsOnly = false;
+    SessionSettings->bAllowInvites = false;    //Allow inviting players into session. This requires presence and a local user. 
+    SessionSettings->bAllowJoinInProgress = false; //Once the session is started, no one can join.
+    SessionSettings->bIsDedicated = false; //Session created on dedicated server.
+    SessionSettings->bUseLobbiesIfAvailable = true; //For P2P we will use a lobby instead of a session
+    SessionSettings->bUseLobbiesVoiceChatIfAvailable = true; //We will also enable voice
+    SessionSettings->bUsesStats = true; //Needed to keep track of player stats.
+    SessionSettings->Settings.Add(KeyName, FOnlineSessionSetting(0, EOnlineDataAdvertisementType::ViaOnlineService));
+
+    UE_LOG(LogTemp, Log, TEXT("Creating Lobby..."));
+
+    if (!Session->CreateSession(0, FName(KeyValue), *SessionSettings))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Failed to create Lobby!"));
+    }
+}
+
+void ULSSessionSubsystem::HandleCreateSessionCompleted(FName SessionName, bool bWasSuccessful)
+{
+    // Tutorial 7: Callback function: This is called once our lobby is created
+
+    IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
+    IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
+    if (bWasSuccessful)
+    {
+        UE_LOG(LogTemp, Log, TEXT("Lobby: %s Created!"), *SessionName.ToString());
+        const FString Map = "/Game/Local/EOSMatchmakingTestMap?listen";
+        GetWorld()->ServerTravel(Map, false);
+        
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Failed to create lobby!"));
+    }
+
+    // Clear our handle and reset the delegate. 
+    Session->ClearOnCreateSessionCompleteDelegate_Handle(CreateSessionDelegateHandle);
+    CreateSessionDelegateHandle.Reset();
 }

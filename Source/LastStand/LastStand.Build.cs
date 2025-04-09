@@ -9,10 +9,11 @@ public class LastStand : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "AIModule", "UMG", "AnimGraphRuntime", "Slate", "SlateCore", "NavigationSystem" });
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "AIModule", "UMG", "AnimGraphRuntime", "Slate", "SlateCore", "NavigationSystem", "DeveloperSettings" });
         PublicDependencyModuleNames.AddRange(new string[] { "OnlineSubsystemEOS", "OnlineSubsystem", "OnlineSubsystemUtils" });
 		PrivateIncludePaths.Add("LastStand");
-
+        
+        PrivateDefinitions.Add("P2PMODE=1");
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
 		

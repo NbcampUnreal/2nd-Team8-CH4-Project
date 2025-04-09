@@ -4,6 +4,7 @@
 #include "MainMenuWidget.h"
 
 #include "Components/Button.h"
+#include "Components/EditableTextBox.h"
 #include "EOS/LSLoginSubsystem.h"
 
 void UMainMenuWidget::NativeConstruct()
@@ -64,7 +65,7 @@ void UMainMenuWidget::OnLoginButtonClicked()
     if (ULSLoginSubsystem *LoginSubsystem = GetGameInstance()->GetSubsystem<ULSLoginSubsystem>())
     {
         // For dev authentication
-        LoginSubsystem->LoginWithEOS("127.0.0.1:8081", "Admin", "developer");
+        LoginSubsystem->LoginWithEOS("127.0.0.1:8081", CredentialTextBox->GetText().ToString(), "developer");
     }
 }
 

@@ -6,6 +6,7 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "LSGameDataSubsystem.generated.h"
 
+class ULSMapDataAsset;
 class ULSCharacterDataAsset;
 /**
  * 
@@ -16,8 +17,6 @@ class LASTSTAND_API ULSGameDataSubsystem : public UGameInstanceSubsystem
     GENERATED_BODY()
 
 public:
-    ULSGameDataSubsystem();
-
     virtual void Initialize(FSubsystemCollectionBase& Collection) override;
     
 private:
@@ -28,5 +27,5 @@ public:
     TObjectPtr<ULSCharacterDataAsset> Character;
     
     UPROPERTY(BlueprintReadOnly)
-    TObjectPtr<UDataTable> Map;
+    TObjectPtr<ULSMapDataAsset> Map;
 };
