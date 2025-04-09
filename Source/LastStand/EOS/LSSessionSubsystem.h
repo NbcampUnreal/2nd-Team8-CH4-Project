@@ -23,7 +23,8 @@ public:
     void FindCustomSession(const FString SessionName);
     int32 GetNumOfPlayersInSession();
     int32 GetIndexOfPlayerInSession();
-    
+    int32 GetIndexOfPlayerInSession(const APlayerController* Controller);
+
 private:
     void CreateSession(const FName KeyName = "KeyName", const FString KeyValue = "KeyValue");
     void HandleCreateSessionCompleted(FName SessionName, bool bWasSuccessful);

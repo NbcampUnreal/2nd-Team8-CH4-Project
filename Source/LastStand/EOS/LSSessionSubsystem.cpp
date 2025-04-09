@@ -73,7 +73,8 @@ void ULSSessionSubsystem::HandleFindMatchmakingSessionsComplete(bool bWasSuccess
                 CreateSession("Matchmaking", "MatchmakingSession");
             }
         }
-    }else
+    }
+    else
     {
         CreateSession("Matchmaking", "MatchmakingSession");
     }
@@ -131,6 +132,32 @@ int32 ULSSessionSubsystem::GetIndexOfPlayerInSession()
             {
                 const TArray<TSharedRef<const FUniqueNetId>>& RegisteredPlayers = NamedSession->RegisteredPlayers;
                 const FUniqueNetIdRepl LocalPlayerId = GetWorld()->GetFirstLocalPlayerFromController()->GetPreferredUniqueNetId();
+
+                for (int32 Index = 0; Index < RegisteredPlayers.Num(); ++Index)
+                {
+                    if (*RegisteredPlayers[Index] == *LocalPlayerId)
+                    {
+                        return Index;
+                    }
+                }
+            }
+        }
+    }
+
+    checkNoEntry();
+    return -1;
+}
+
+int32 ULSSessionSubsystem::GetIndexOfPlayerInSession(const APlayerController* Controller)
+{
+    if (IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld()))
+    {
+        if (IOnlineSessionPtr Session = Subsystem->GetSessionInterface())
+        {
+            if (FNamedOnlineSession* NamedSession = Session->GetNamedSession(NAME_GameSession))
+            {
+                const TArray<TSharedRef<const FUniqueNetId>>& RegisteredPlayers = NamedSession->RegisteredPlayers;
+                const FUniqueNetIdRepl LocalPlayerId = Controller->GetLocalPlayer()->GetPreferredUniqueNetId();
 
                 for (int32 Index = 0; Index < RegisteredPlayers.Num(); ++Index)
                 {
