@@ -17,6 +17,9 @@ public:
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Audio")
     float MasterVolume = 1.0f;
 
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Start")
+    bool FirstStart = true;
+
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Audio")
     class USoundMix* MasterSoundMix;
 
