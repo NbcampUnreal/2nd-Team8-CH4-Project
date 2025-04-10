@@ -22,6 +22,8 @@ public:
 protected:
     virtual void BeginPlay() override;
 
+    void InitializeInput();
+
 public:
     // --- 방향 입력 처리 ---
     UFUNCTION()

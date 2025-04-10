@@ -14,31 +14,59 @@ ULS_InputMappingContext::ULS_InputMappingContext()
 
 void ULS_InputMappingContext::BeginPlay()
 {
+    Super::BeginPlay();
 
+    // 타이머를 사용해서 초기화 지연 실행
+    GetWorld()->GetTimerManager().SetTimerForNextTick(this, &ULS_InputMappingContext::InitializeInput);
+}
+
+void ULS_InputMappingContext::InitializeInput()
+{
     ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
-    if (!OwnerCharacter) return;
+    if (!OwnerCharacter)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[ULS_InputMappingContext] OwnerCharacter is null (InitializeInput)"));
+        return;
+    }
 
     APlayerController* PC = Cast<APlayerController>(OwnerCharacter->GetController());
-    if (!PC) return;
+    if (!PC)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[ULS_InputMappingContext] PlayerController is null (InitializeInput)"));
+        return;
+    }
 
     if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
     {
-        UE_LOG(LogTemp, Warning, TEXT("ULS_InputMappingContext BeginPlay"));
-        if (Subsystem && MappingContext)
+        if (MappingContext)
         {
+            UE_LOG(LogTemp, Warning, TEXT("[ULS_InputMappingContext] AddMappingContext: %s"), *MappingContext->GetName());
             Subsystem->AddMappingContext(MappingContext, 0);
         }
         else
         {
-            UE_LOG(LogTemp, Error, TEXT("MappingContext or Subsystem is null"));
+            UE_LOG(LogTemp, Error, TEXT("[ULS_InputMappingContext] MappingContext is null"));
         }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("[ULS_InputMappingContext] Subsystem is null"));
     }
 
     InputBuffer = OwnerCharacter->FindComponentByClass<ULS_InputBuffer>();
+    if (!InputBuffer)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[ULS_InputMappingContext] InputBuffer is null (InitializeInput)"));
+    }
 
     if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(OwnerCharacter->InputComponent))
     {
+        UE_LOG(LogTemp, Warning, TEXT("[ULS_InputMappingContext] EnhancedInputComponent is valid (InitializeInput)"));
         BindInput(EnhancedInput);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("[ULS_InputMappingContext] EnhancedInputComponent is null"));
     }
 }
 
@@ -114,9 +142,17 @@ void ULS_InputMappingContext::OnUpDown(const FInputActionValue& Value)
 
 void ULS_InputMappingContext::OnLeftRight(const FInputActionValue& Value)
 {
-    if (!InputBuffer) return;
+    UE_LOG(LogTemp, Warning, TEXT(">>> OnLeftRight Triggered"));
+
+    if (!InputBuffer)
+    {
+        UE_LOG(LogTemp, Error, TEXT("InputBuffer is null in OnLeftRight"));
+        return;
+    }
 
     const float X = Value.Get<float>();
+    UE_LOG(LogTemp, Warning, TEXT("LeftRight Axis Value: %f"), X);
+
     if (X > 0.5f)
         InputBuffer->BufferDirection(EBufferedDirection::Right);
     else if (X < -0.5f)
