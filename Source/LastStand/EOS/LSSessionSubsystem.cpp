@@ -113,12 +113,13 @@ int32 ULSSessionSubsystem::GetNumOfPlayersInSession()
     {
         if (IOnlineSessionPtr Session = Subsystem->GetSessionInterface())
         {
-            if (FNamedOnlineSession* NamedSession = Session->GetNamedSession(NAME_GameSession))
+            if (FNamedOnlineSession* NamedSession = Session->GetNamedSession(CurrentSessionName))
             {
                 NumPlayers = NamedSession->RegisteredPlayers.Num();
             }
         }
     }
+    UE_LOG(LogTemp, Log, TEXT("GetNumOfPlayersInSession : %d"), NumPlayers);
     return NumPlayers;
 }
 
@@ -183,7 +184,6 @@ void ULSSessionSubsystem::HandleFindCustomSessionsComplete(bool bWasSuccessful, 
             if (Search->SearchResults.Num() > 0)
             {
                 UE_LOG(LogTemp, Log, TEXT("세션을 찾았습니다."));
-                OnEOSSessionSearchComplete.Broadcast(Search);
                 JoinSession("CustomSession");
             }
         }
@@ -228,6 +228,7 @@ void ULSSessionSubsystem::HandleJoinSessionComplete(FName SessionName, EOnJoinSe
         {
             if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
             {
+                CurrentSessionName = SessionName;
                 PlayerController->ClientTravel(ConnectString, ETravelType::TRAVEL_Absolute);
             }
         }
@@ -262,7 +263,7 @@ void ULSSessionSubsystem::CreateSession(const FName KeyName, const FString KeyVa
     SessionSettings->bAllowJoinInProgress = false; //Once the session is started, no one can join.
     SessionSettings->bIsDedicated = false; //Session created on dedicated server.
     SessionSettings->bUseLobbiesIfAvailable = true; //For P2P we will use a lobby instead of a session
-    SessionSettings->bUseLobbiesVoiceChatIfAvailable = true; //We will also enable voice
+    SessionSettings->bUseLobbiesVoiceChatIfAvailable = false; //We will also enable voice
     SessionSettings->bUsesStats = true; //Needed to keep track of player stats.
     SessionSettings->Settings.Add(KeyName, FOnlineSessionSetting(0, EOnlineDataAdvertisementType::ViaOnlineService));
 
@@ -283,16 +284,54 @@ void ULSSessionSubsystem::HandleCreateSessionCompleted(FName SessionName, bool b
     if (bWasSuccessful)
     {
         UE_LOG(LogTemp, Log, TEXT("Lobby: %s Created!"), *SessionName.ToString());
+        CurrentSessionName = SessionName;
         const FString Map = "/Game/LastStand/Maps/Menu/LS_Matching?listen";
         GetWorld()->ServerTravel(Map, false);
-        
     }
     else
     {
         UE_LOG(LogTemp, Warning, TEXT("Failed to create lobby!"));
     }
-
-    // Clear our handle and reset the delegate. 
+    // Clear our handle and reset the delegate.
     Session->ClearOnCreateSessionCompleteDelegate_Handle(CreateSessionDelegateHandle);
     CreateSessionDelegateHandle.Reset();
 }
+
+void ULSSessionSubsystem::DestroySession()
+{
+    IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
+    IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
+
+    DestroySessionDelegateHandle =
+        Session->AddOnDestroySessionCompleteDelegate_Handle(FOnDestroySessionCompleteDelegate::CreateUObject(
+            this,
+            &ThisClass::HandleDestroySessionCompleted));
+
+    if (!Session->DestroySession(CurrentSessionName))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Failed to destroy session.")); 
+        Session->ClearOnDestroySessionCompleteDelegate_Handle(DestroySessionDelegateHandle);
+        DestroySessionDelegateHandle.Reset();
+    }
+}
+
+void ULSSessionSubsystem::HandleDestroySessionCompleted(FName EOSSessionName, bool bWasSuccessful)
+{
+
+    IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
+    IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
+
+    if (bWasSuccessful)
+    {
+        OnEOSSessionDestroyComplete.Broadcast();
+        UE_LOG(LogTemp, Log, TEXT("Destroyed session succesfully.")); 
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Failed to destroy session.")); 
+    }
+
+    Session->ClearOnDestroySessionCompleteDelegate_Handle(DestroySessionDelegateHandle);
+    DestroySessionDelegateHandle.Reset();
+}
+
