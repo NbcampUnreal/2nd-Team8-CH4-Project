@@ -36,6 +36,9 @@ private:
     
     UFUNCTION(BlueprintCallable)
     void PickMap(FString MapName);
+
+    UFUNCTION(BlueprintCallable)
+    void StartGame();
     
     UFUNCTION(Client, Reliable)
     void ClientPickCharacter(int PlayerNumber, FName CharacterName);
@@ -45,6 +48,9 @@ private:
     
     UFUNCTION(Client, Reliable)
     void ClientPickMap(const FString& MapName);
+
+    UFUNCTION(Client, Reliable)
+    void ClientActiveLoadingWidget();
     
     UFUNCTION(Server, Reliable)
     void ServerCompleteLoad();
@@ -60,9 +66,13 @@ private:
 
     UPROPERTY(EditDefaultsOnly)
     TSubclassOf<ULSMapPickWidget> MapPickWidgetClass;
+
+    UPROPERTY(EditDefaultsOnly)
+    TSubclassOf<UUserWidget> LoadingWidgetClass;
     
     TObjectPtr<ULSCharacterPickWidget> CharacterPickWidget;
     TObjectPtr<ULSMapPickWidget> MapPickWidget;
+    TObjectPtr<UUserWidget> LoadingWidget;
     bool bLoaded;
     FName PickCharacterName;
     FString PickMapName;
