@@ -5,7 +5,7 @@
 #include "LSArcadeGameMode.generated.h"
 
 UCLASS()
-class LASTSTAND_API ALSArcadeGameMode : public AGameMode
+class LASTSTAND_API ALSArcadeGameMode : public AGameModeBase
 {
     GENERATED_BODY()
 
