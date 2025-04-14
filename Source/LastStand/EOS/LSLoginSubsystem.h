@@ -19,11 +19,14 @@ public:
     void LoginWithEOS(const FString& UserId, const FString& Token, const FString& LoginType);
     UFUNCTION(BlueprintCallable, Category = "LSEOSSubsystem")
     void GetPlayerUse(const FString& UserId, const FString& Token, const FString& LoginType);
+    UFUNCTION(BlueprintCallable, Category = "LSEOSSubsystem")
+    bool GetIsPlayerLogin();
     
 private:
     void LoginWithEOSComplete(int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId, const FString& ErrorString);
 
 public:
+    UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "LSEOSSubsystem")
     FOnEOSLoginComplete OnEOSLoginComplete;
     FDelegateHandle LoginDelegateHandle;
 };

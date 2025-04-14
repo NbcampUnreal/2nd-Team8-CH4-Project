@@ -6,19 +6,19 @@
 #include "Engine/DataAsset.h"
 #include "LSCharacterDataAsset.generated.h"
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FCharacterData
 {
     GENERATED_BODY()
 
 public:
-    UPROPERTY(EditAnywhere)
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FName KeyName;
     
-    UPROPERTY(EditAnywhere)
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
     FString DisplayName;
 
-    UPROPERTY(EditAnywhere)
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TObjectPtr<UTexture2D> Image;
 };
 
@@ -33,5 +33,6 @@ public:
     TArray<FCharacterData> CharacterDatas;
 
 public:
+    UFUNCTION(BlueprintCallable)
     FCharacterData GetCharacterData(FName Key);
 };
