@@ -47,11 +47,21 @@ void ALSPickPlayerController::StartPickMap()
 {
     check(HasAuthority())
 
-    for (auto Iter = GetWorld()->GetPlayerControllerIterator(); Iter; ++Iter)
+    //EOS가 매치 메이킹인지 커스텀인지로 변경
+    if (false)
     {
-        if (ALSPickPlayerController* Cont = Cast<ALSPickPlayerController>(*Iter))
+        FMapData RandomMapData = GetGameInstance()->GetSubsystem<ULSGameDataSubsystem>()->Map->GetRandomMapData();
+        PickMapName = RandomMapData.Name;
+        GetWorld()->GetAuthGameMode<ALSPickGameMode>()->GameStart(RandomMapData);
+    }
+    else
+    {
+        for (auto Iter = GetWorld()->GetPlayerControllerIterator(); Iter; ++Iter)
         {
-            Cont->ClientStartPickMap();
+            if (ALSPickPlayerController* Cont = Cast<ALSPickPlayerController>(*Iter))
+            {
+                Cont->ClientStartPickMap();
+            }
         }
     }
 }
@@ -69,6 +79,37 @@ void ALSPickPlayerController::PickMap(FString MapName)
             PlayerController->ClientPickMap(MapName);
         }
     }
+}
+
+void ALSPickPlayerController::StartGame()
+{
+    check(HasAuthority())
+
+    if (PickMapName == "" || PickMapName == "None")
+    {
+        UE_LOG(LogTemp, Warning, TEXT("맵을 골라주세요"))
+        return;
+    }
+
+    //로딩 UI 띄어줌
+    for (auto Iter = GetWorld()->GetPlayerControllerIterator(); Iter; ++Iter)
+    {
+        if (ALSPickPlayerController* PlayerController = Cast<ALSPickPlayerController>(*Iter))
+        {
+            PlayerController->ClientActiveLoadingWidget();
+        }
+    }
+
+    FMapData MapData = GetGameInstance()->GetSubsystem<ULSGameDataSubsystem>()->Map->GetMapData(PickMapName);
+    GetWorld()->GetAuthGameMode<ALSPickGameMode>()->GameStart(MapData);
+}
+
+void ALSPickPlayerController::ClientActiveLoadingWidget_Implementation()
+{
+    MapPickWidget->RemoveFromParent();
+
+    LoadingWidget = CreateWidget(this, LoadingWidgetClass);
+    LoadingWidget->AddToViewport();
 }
 
 void ALSPickPlayerController::ClientStartPickCharacter_Implementation(int32 PlayerCount)
