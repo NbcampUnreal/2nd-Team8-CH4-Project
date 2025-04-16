@@ -17,7 +17,8 @@ void ULS_InputMappingContext::BeginPlay()
     Super::BeginPlay();
 
     // 타이머를 사용해서 초기화 지연 실행
-    GetWorld()->GetTimerManager().SetTimerForNextTick(this, &ULS_InputMappingContext::InitializeInput);
+    FTimerHandle TimerHandle;
+    GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ULS_InputMappingContext::InitializeInput, 3.0f, false);
 }
 
 void ULS_InputMappingContext::InitializeInput()
