@@ -19,12 +19,14 @@ class LASTSTAND_API ALSPickGameMode : public AGameMode
 public:
 	ALSPickGameMode();
     
-    UFUNCTION(BlueprintCallable)
-	void GameStart();
-
     void CheckAllLoaded();
     void CheckAllPlayerPick();
+	void GameStart(FMapData MapData);
 
     UFUNCTION(BlueprintImplementableEvent)
     void SetGameSettings(const TArray<FName>& PickCharacters, FMapData MapData);
+
+private:
+    UPROPERTY(EditAnywhere)
+    int32 TempPlayerSize = 2;
 };

@@ -14,16 +14,12 @@ ALSPickGameMode::ALSPickGameMode()
     PlayerControllerClass = ALSPickPlayerController::StaticClass();
 }
 
-void ALSPickGameMode::GameStart()
+void ALSPickGameMode::GameStart(FMapData MapData)
 {
     GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, TEXT("게임 시작"));
-
-    ALSPickPlayerController* ServerPlayerController = GetWorld()->GetFirstPlayerController<ALSPickPlayerController>();
-    FString MapName = ServerPlayerController->GetPickMapName();
-    FMapData MapData = GetGameInstance()->GetSubsystem<ULSGameDataSubsystem>()->Map->GetMapData(MapName);
-    FString OpenURL = MapData.Level.GetAssetName();
     
     //데이터를 붙여서 보냄 (원래 이렇게해서 맵에 전달 후 생성하려고 했는데 있는거 이용하기로 결정)
+    FString OpenURL = MapData.Level.GetAssetName();
     OpenURL += "?";
     int a = 0;
     TArray<FName> PickCharacters;
@@ -65,7 +61,7 @@ void ALSPickGameMode::CheckAllLoaded()
     //PlayerController가 천천히 생기기 때문에 호스트가 처음 들어왔을 땐 PlayerController가 1개임
     //그 후 들어오는 플레이어마다 1씩 늘어남
     int PlayerCount = GetWorld()->GetNumPlayerControllers();
-    int TempMaxPlayerCount = 2;
+    int TempMaxPlayerCount = TempPlayerSize;
     // int TempMaxPlayerCount = GetGameInstance()->GetSubsystem<ULSSessionSubsystem>()->GetNumOfPlayersInSession();
 
     if (PlayerCount == TempMaxPlayerCount && bAllLoad)
