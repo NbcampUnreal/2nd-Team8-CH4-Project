@@ -27,6 +27,6 @@ public:
     void SetGameSettings(const TArray<FName>& PickCharacters, FMapData MapData);
 
 private:
-    UPROPERTY(EditAnywhere)
+    UPROPERTY(VisibleDefaultsOnly)
     int32 TempPlayerSize = 2;
 };
