@@ -1,6 +1,6 @@
 #include "LS_KnockbackComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 ULS_KnockbackComponent::ULS_KnockbackComponent()
 {
@@ -13,15 +13,12 @@ void ULS_KnockbackComponent::ApplyKnockback(FVector SourceLocation, float Streng
     if (!OwnerCharacter) return;
 
     FVector Direction = (OwnerCharacter->GetActorLocation() - SourceLocation).GetSafeNormal();
-
-
     Direction.Z += VerticalBoost + 1.2f;
     Direction.Normalize();
 
     UCharacterMovementComponent* MoveComp = OwnerCharacter->GetCharacterMovement();
     if (MoveComp)
     {
-      
         MoveComp->GroundFriction = 0.0f;
         MoveComp->BrakingFrictionFactor = 0.0f;
         MoveComp->BrakingDecelerationWalking = 0.0f;
@@ -38,4 +35,12 @@ void ULS_KnockbackComponent::ApplyKnockback(FVector SourceLocation, float Streng
     }
 
     UE_LOG(LogTemp, Warning, TEXT("[Knockback] 적용됨! Direction: %s, Strength: %.1f"), *Direction.ToString(), Strength);
+}
+
+void ULS_KnockbackComponent::TriggerKnockbackFromParticle(AActor* InstigatorActor, float Strength, float VerticalBoost)
+{
+    if (!InstigatorActor) return;
+
+    FVector SourceLocation = InstigatorActor->GetActorLocation();
+    ApplyKnockback(SourceLocation, Strength, VerticalBoost);
 }

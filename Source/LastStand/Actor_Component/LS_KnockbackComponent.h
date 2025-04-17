@@ -16,6 +16,9 @@ class LASTSTAND_API ULS_KnockbackComponent : public UActorComponent
 public:
     ULS_KnockbackComponent();
 
-    UFUNCTION(BlueprintCallable, Category = "Knockback")
-    void ApplyKnockback(FVector SourceLocation, float Strength = 1000.f, float VerticalBoost = 0.0f);
+    UFUNCTION(BlueprintCallable)
+    void ApplyKnockback(FVector SourceLocation, float Strength, float VerticalBoost);
+
+    UFUNCTION(BlueprintCallable)
+    void TriggerKnockbackFromParticle(AActor* InstigatorActor, float Strength = 1200.f, float VerticalBoost = 0.5f);
 };

@@ -10,6 +10,7 @@ class UBoxComponent;
 class UStaticMeshComponent;
 class USoundBase;
 class ALS_ObjectSpawnBox;
+class ALS_MovingActor;
 
 UCLASS()
 class LASTSTAND_API ALS_Button : public AActor
@@ -22,44 +23,57 @@ public:
 protected:
     virtual void BeginPlay() override;
 
+public:
     UFUNCTION()
     void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
         UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
         bool bFromSweep, const FHitResult& SweepResult);
 
+
     void ActivateButton();
     void SpawnSnowballStep();
 
-    FTimerHandle SpawnTimerHandle;
-    int32 SnowballSpawnCount = 0;
+    UPROPERTY()
+    bool bActivated = false;
 
-public:
+    UFUNCTION()
+    void StartMovingActor();
+
+
+private:
     UPROPERTY(VisibleAnywhere)
     UStaticMeshComponent* Cube;
 
     UPROPERTY(VisibleAnywhere)
     UBoxComponent* Box;
 
-    UPROPERTY(EditAnywhere, Category = "Visual")
-    UStaticMesh* UnpressedMesh;
-
-    UPROPERTY(EditAnywhere, Category = "Visual")
-    UStaticMesh* PressedMesh;
-
     UPROPERTY(EditAnywhere, Category = "Sound")
     USoundBase* ActivateSound;
 
-    UPROPERTY(EditAnywhere, Category = "Spawn")
-    TSubclassOf<AActor> SnowballClass;
+    UPROPERTY(EditAnywhere, Category = "Meshes")
+    UStaticMesh* UnpressedMesh;
 
-    UPROPERTY(EditAnywhere, Category = "Spawn")
-    ALS_ObjectSpawnBox* SpawnBoxRef;
+    UPROPERTY(EditAnywhere, Category = "Meshes")
+    UStaticMesh* PressedMesh;
 
-    UPROPERTY(EditAnywhere, Category = "Spawn")
-    int32 TotalSnowballsToSpawn = 30;
+    UPROPERTY(EditAnywhere, Category = "Snowball")
+    TSubclassOf<AActor> SnowballClass;  // 기존 Snowball 클래스
 
-    UPROPERTY(EditAnywhere, Category = "Spawn")
-    float SpawnInterval = 0.5f;
+    UPROPERTY(EditAnywhere, Category = "MoveActor")
+    TSubclassOf<ALS_MovingActor> MoveActorClass; // MoveActor 클래스
 
-    bool bActivated = false;
+    UPROPERTY(EditAnywhere, Category = "Snowball")
+    float TotalSnowballsToSpawn = 3.0f;
+
+    UPROPERTY(EditAnywhere, Category = "Snowball")
+    float SpawnInterval = 1.0f;
+
+    UPROPERTY()
+    int32 SnowballSpawnCount;
+
+    FTimerHandle SpawnTimerHandle;
+
+    // Spawn Box Reference
+    UPROPERTY(EditAnywhere, Category = "Snowball")
+    class ALS_ObjectSpawnBox* SpawnBoxRef;
 };

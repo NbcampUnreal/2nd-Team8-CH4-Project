@@ -35,7 +35,7 @@ void ULS_Floor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 void ULS_Floor::UpdateSurfaceResponse()
 {
     FVector Start = OwnerCharacter->GetActorLocation();
-    FVector End = Start - FVector(0, 0, 100);  
+    FVector End = Start - FVector(0, 0, 100);  // 발밑으로 레이캐스트
 
     FHitResult Hit;
     FCollisionQueryParams Params;
@@ -46,42 +46,48 @@ void ULS_Floor::UpdateSurfaceResponse()
         UMaterialInterface* Mat = Hit.Component.IsValid() ? Hit.Component->GetMaterial(0) : nullptr;
         UPhysicalMaterial* DetectedPhysMat = Mat ? Mat->GetPhysicalMaterial() : nullptr;
 
-  
+        // 각 물리 머티리얼에 대해 처리할 로직
         if (DetectedPhysMat == IceMaterial)
         {
             HandleIceMaterial();
         }
         else if (DetectedPhysMat == FastMaterial)
         {
-            HandleFastMaterial();  
+            HandleFastMaterial();
         }
         else if (DetectedPhysMat == SlowMaterial)
         {
-            HandleSlowMaterial(); 
+            HandleSlowMaterial();
         }
         else if (DetectedPhysMat == HighJumpMaterial)
         {
-            HandleHighJump();  
+            HandleHighJump();
         }
         else if (DetectedPhysMat == LowJumpMaterial)
         {
-            HandleLowJump();  
+            HandleLowJump();
         }
         else if (DetectedPhysMat == TickJumpMaterial)
         {
-            HandleTickJump();  
+            HandleTickJump();
         }
         else
         {
-           
-            MoveComp->GroundFriction = NormalGroundFriction;
-            MoveComp->BrakingFrictionFactor = NormalBrakingFrictionFactor;
-            MoveComp->BrakingDecelerationWalking = NormalBrakingDeceleration;
-            MoveComp->JumpZVelocity = NormalJumpZVelocity;
+            RestoreDefaultValues();
         }
     }
 }
 
+void ULS_Floor::RestoreDefaultValues()
+{
+    MoveComp->GroundFriction = NormalGroundFriction;
+    MoveComp->BrakingFrictionFactor = NormalBrakingFrictionFactor;
+    MoveComp->BrakingDecelerationWalking = NormalBrakingDeceleration;
+    MoveComp->MaxWalkSpeed = NormalSpeed;
+    MoveComp->JumpZVelocity = NormalJumpZVelocity;
+
+    UE_LOG(LogTemp, Log, TEXT("No specific material detected. Reverting to default settings."));
+}
 
 void ULS_Floor::HandleIceMaterial()
 {

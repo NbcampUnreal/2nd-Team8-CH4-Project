@@ -6,22 +6,22 @@
 #include "GameFramework/Actor.h"
 #include "LS_ObjectSpawnBox.generated.h"
 
+class UBoxComponent;
+
 UCLASS()
 class LASTSTAND_API ALS_ObjectSpawnBox : public AActor
 {
 	GENERATED_BODY()
 	
 public:
+    
     ALS_ObjectSpawnBox();
 
-
-public:
-
+    FVector GetBoxLocation() const;
+ 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     class UBoxComponent* SpawnBox;
-
 
     UPROPERTY(VisibleAnywhere)
     class USceneComponent* Root;
 };
-

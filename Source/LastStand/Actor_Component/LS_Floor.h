@@ -34,6 +34,7 @@ private:
     void HandleHighJump();
     void HandleLowJump();
     void HandleTickJump();
+    void RestoreDefaultValues();
 
 public:
   

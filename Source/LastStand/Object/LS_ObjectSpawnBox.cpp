@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "LS_ObjectSpawnBox.h"
 #include "Components/BoxComponent.h"
 
@@ -14,9 +11,12 @@ ALS_ObjectSpawnBox::ALS_ObjectSpawnBox()
     SpawnBox = CreateDefaultSubobject<UBoxComponent>(TEXT("SpawnBox"));
     SpawnBox->SetupAttachment(RootComponent);
     SpawnBox->SetBoxExtent(FVector(50.f, 50.f, 50.f));
-    SpawnBox->SetHiddenInGame(false); // 항상 보여지게
+    SpawnBox->SetHiddenInGame(true);
     SpawnBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
-
-
+// GetComponentLocation()으로 위치 가져오기
+FVector ALS_ObjectSpawnBox::GetBoxLocation() const
+{
+    return SpawnBox ? SpawnBox->GetComponentLocation() : FVector::ZeroVector; // SpawnBox가 유효할 때만 위치 반환
+}
