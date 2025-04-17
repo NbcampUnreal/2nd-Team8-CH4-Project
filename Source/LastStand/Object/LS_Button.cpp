@@ -30,7 +30,6 @@ void ALS_Button::BeginPlay()
         Cube->SetStaticMesh(UnpressedMesh);
     }
 
-    // 서버에서만 이동 액터 생성
     if (HasAuthority())
     {
         StartMovingActor();
@@ -79,6 +78,48 @@ void ALS_Button::ActivateButton()
             true
         );
     }
+
+    // 파티클 효과 활성화
+    if (SpawnedMoveActor)
+    {
+        SpawnedMoveActor->ServerActivateKnockbackEffect();
+    }
+}
+
+void ALS_Button::SpawnSnowballStep()
+{
+    if (!SnowballClass || !SpawnBoxRef || SnowballSpawnCount >= TotalSnowballsToSpawn)
+    {
+        GetWorld()->GetTimerManager().ClearTimer(SpawnTimerHandle);
+        return;
+    }
+
+    UBoxComponent* BoxComp = SpawnBoxRef->SpawnBox;
+    if (!BoxComp) return;
+
+    FVector Origin = BoxComp->GetComponentLocation();
+    FVector Extent = BoxComp->GetScaledBoxExtent();
+
+    FVector RandomOffset = FVector(
+        FMath::FRandRange(-Extent.X, Extent.X),
+        FMath::FRandRange(-Extent.Y, Extent.Y),
+        FMath::FRandRange(-Extent.Z, Extent.Z)
+    );
+
+    FVector SpawnLocation = Origin + RandomOffset;
+    FRotator SpawnRotation = FRotator::ZeroRotator;
+
+    FActorSpawnParameters SpawnParams;
+    SpawnParams.Owner = this;
+    SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+    AActor* Snowball = GetWorld()->SpawnActor<AActor>(SnowballClass, SpawnLocation, SpawnRotation, SpawnParams);
+    if (Snowball)
+    {
+        UE_LOG(LogTemp, Log, TEXT("Snowball spawned at %s"), *SpawnLocation.ToString());
+    }
+
+    SnowballSpawnCount++;
 }
 
 void ALS_Button::StartMovingActor()
@@ -89,12 +130,13 @@ void ALS_Button::StartMovingActor()
     SpawnParams.Owner = this;
     SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-    if (HasAuthority()) // 서버에서만 스폰
+    if (HasAuthority())
     {
-        ALS_MovingActor* MovingActor = GetWorld()->SpawnActor<ALS_MovingActor>(MoveActorClass, SpawnBoxRef->GetActorLocation(), FRotator::ZeroRotator, SpawnParams);
-        if (MovingActor)
+        SpawnedMoveActor = GetWorld()->SpawnActor<ALS_MovingActor>(MoveActorClass, SpawnBoxRef->GetActorLocation(), FRotator::ZeroRotator, SpawnParams);
+        if (SpawnedMoveActor)
         {
-            MovingActor->StartMoving(SpawnBoxRef->GetActorLocation());
+            UE_LOG(LogTemp, Warning, TEXT("MoveActor Spawned"));
+            SpawnedMoveActor->StartMoving(SpawnBoxRef->GetActorLocation());
         }
     }
 }

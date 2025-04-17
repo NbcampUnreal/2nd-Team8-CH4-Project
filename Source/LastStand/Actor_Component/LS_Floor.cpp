@@ -103,6 +103,7 @@ void ULS_Floor::HandleIceMaterial()
 void ULS_Floor::HandleFastMaterial()
 {
     MoveComp->MaxWalkSpeed = FastSpeed; 
+    MoveComp->JumpZVelocity = NormalJumpZVelocity;
 
     UE_LOG(LogTemp, Log, TEXT("Fast material detected. Increasing movement speed."));
 }
@@ -111,7 +112,7 @@ void ULS_Floor::HandleFastMaterial()
 void ULS_Floor::HandleSlowMaterial()
 {
     MoveComp->MaxWalkSpeed = SlowSpeed;  
-  
+    MoveComp->JumpZVelocity = NormalJumpZVelocity;
 
     UE_LOG(LogTemp, Log, TEXT("Slow material detected. Decreasing movement speed."));
 }
@@ -120,7 +121,7 @@ void ULS_Floor::HandleSlowMaterial()
 void ULS_Floor::HandleHighJump()
 {
     MoveComp->JumpZVelocity = HighJumpZVelocity;  
-
+    MoveComp->MaxWalkSpeed = NormalSpeed;
 
     UE_LOG(LogTemp, Log, TEXT("High Jump material detected. Increasing jump height."));
 }
@@ -129,20 +130,20 @@ void ULS_Floor::HandleHighJump()
 void ULS_Floor::HandleLowJump()
 {
     MoveComp->JumpZVelocity = LowJumpZVelocity;  
-
+    MoveComp->MaxWalkSpeed = NormalSpeed;
 
     UE_LOG(LogTemp, Log, TEXT("Low Jump material detected. Decreasing jump height."));
 }
 
 void ULS_Floor::HandleTickJump()
 {
-    if (!MoveComp->IsFalling()) 
-    {
-     
-        UE_LOG(LogTemp, Log, TEXT("TickJump material detected. Triggering auto-jump."));
-        OwnerCharacter->LaunchCharacter(FVector(0, 0, 1) * TickJumpZVelocity, true, true);  
+    MoveComp->MaxWalkSpeed = NormalSpeed; 
 
- 
+    if (!MoveComp->IsFalling())
+    {
+        UE_LOG(LogTemp, Log, TEXT("TickJump material detected. Triggering auto-jump."));
+        OwnerCharacter->LaunchCharacter(FVector(0, 0, 1) * TickJumpZVelocity, true, true);
+
         if (JumpSound)
         {
             UGameplayStatics::PlaySoundAtLocation(this, JumpSound, OwnerCharacter->GetActorLocation());

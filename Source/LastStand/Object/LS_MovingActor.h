@@ -6,6 +6,10 @@
 #include "GameFramework/Actor.h"
 #include "LS_MovingActor.generated.h"
 
+class UStaticMeshComponent;
+class UParticleSystemComponent;
+class USceneComponent;
+
 UCLASS()
 class LASTSTAND_API ALS_MovingActor : public AActor
 {
@@ -19,30 +23,42 @@ protected:
 
 public:
     virtual void Tick(float DeltaTime) override;
-    void MoveActor(float DeltaTime);
+
     void StartMoving(FVector NewStartLocation);
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-    float MoveRange = 1000.0f;
+    UFUNCTION(Server,Reliable)
+    void  ServerActivateKnockbackEffect();  // 버튼 눌렸을 때 호출
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-    float MoveSpeed = 200.0f;
+private:
+    void MoveActor(float DeltaTime);
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
-    UStaticMesh* MeshAsset;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
-    UStaticMeshComponent* MeshComponent;
-
-    UPROPERTY(EditAnywhere, Category = "Knockback")
-    class UParticleSystemComponent* KnockbackEffect;
-
-    UFUNCTION()
+    UFUNCTION(BlueprintCallable)
     void OnKnockbackOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
         UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
         bool bFromSweep, const FHitResult& SweepResult);
 
-    void ActivateKnockbackEffect();
+public:
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    USceneComponent* SceneComponent;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    UStaticMeshComponent* MeshComponent;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    UParticleSystemComponent* KnockbackEffect;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+    float MoveRange = 1000.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+    float MoveSpeed = 200.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Knockback")
+    float KnockbackStrength = 1200.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Knockback")
+    float VerticalBoost = 0.6f;
 
 private:
     FVector InitialStartLocation;

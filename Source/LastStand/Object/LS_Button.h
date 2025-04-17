@@ -38,7 +38,8 @@ public:
 
     UFUNCTION()
     void StartMovingActor();
-
+    UPROPERTY()
+    ALS_MovingActor* SpawnedMoveActor;
 
 private:
     UPROPERTY(VisibleAnywhere)
