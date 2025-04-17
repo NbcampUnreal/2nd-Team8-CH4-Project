@@ -254,7 +254,7 @@ void ULSSessionSubsystem::CreateSession(const FName KeyName, const FString KeyVa
             &ThisClass::HandleCreateSessionCompleted));
 
     TSharedRef<FOnlineSessionSettings> SessionSettings = MakeShared<FOnlineSessionSettings>();
-    SessionSettings->NumPublicConnections = 2; //We will test our sessions with 2 players to keep things simple
+    SessionSettings->NumPublicConnections = 6; //We will test our sessions with 2 players to keep things simple
     SessionSettings->bShouldAdvertise = true; //This creates a public match and will be searchable.
     SessionSettings->bUsesPresence = false;   //No presence on dedicated server. This requires a local user.
     SessionSettings->bAllowJoinViaPresence = false;

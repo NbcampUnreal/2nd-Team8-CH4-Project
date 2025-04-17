@@ -28,5 +28,5 @@ public:
 
 private:
     UPROPERTY(VisibleDefaultsOnly)
-    int32 TempPlayerSize = 2;
+    int32 TempPlayerSize = 6;
 };

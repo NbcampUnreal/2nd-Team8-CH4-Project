@@ -20,6 +20,6 @@ protected:
     
 private:
     FDelegateHandle JoinPlayerDelegateHandle;
-    int32 MaxNumberOfPlayers = 2;
+    int32 MaxNumberOfPlayers = 6;
     int32 NumberOfPlayers = 0;
 };
