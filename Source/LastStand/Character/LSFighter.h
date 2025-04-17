@@ -19,7 +19,10 @@ public:
 
     virtual void Tick(float DeltaTime) override;
     virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
-
+    
+    UFUNCTION(BlueprintImplementableEvent, Category="BP_Fighter")
+    void ReadyToPlay();
+    
 protected:
     virtual void BeginPlay() override;
 

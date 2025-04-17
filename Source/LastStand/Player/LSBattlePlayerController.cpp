@@ -3,6 +3,14 @@
 
 ALSBattlePlayerController::ALSBattlePlayerController()
 {
+}
+
+void ALSBattlePlayerController::BeginPlay()
+{
+    Super::BeginPlay();
+    
+    FInputModeGameOnly InputMode;
+    SetInputMode(InputMode);
 };
 
 void ALSBattlePlayerController::ClientShowResultUI_Implementation()

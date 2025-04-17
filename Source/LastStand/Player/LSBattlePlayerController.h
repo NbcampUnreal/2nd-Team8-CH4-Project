@@ -20,5 +20,5 @@ private:
     TSubclassOf<UUserWidget> ResultWidgetClass;
 
 protected:
-
+    virtual void BeginPlay() override;
 };

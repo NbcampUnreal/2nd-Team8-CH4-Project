@@ -22,9 +22,8 @@ public:
 protected:
     virtual void BeginPlay() override;
 
-    void InitializeInput();
-
 public:
+    void InitializeInput();
     // --- 방향 입력 처리 ---
     UFUNCTION()
     void OnUpDown(const FInputActionValue& Value);

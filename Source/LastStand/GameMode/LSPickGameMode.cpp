@@ -20,7 +20,7 @@ void ALSPickGameMode::GameStart(FMapData MapData)
     
     //데이터를 붙여서 보냄 (원래 이렇게해서 맵에 전달 후 생성하려고 했는데 있는거 이용하기로 결정)
     FString OpenURL = MapData.Level.GetAssetName();
-    OpenURL += "?";
+    OpenURL += "?listen?";
     int a = 0;
     TArray<FName> PickCharacters;
     
