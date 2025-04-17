@@ -15,10 +15,6 @@ ULS_InputMappingContext::ULS_InputMappingContext()
 void ULS_InputMappingContext::BeginPlay()
 {
     Super::BeginPlay();
-
-    // 타이머를 사용해서 초기화 지연 실행
-    FTimerHandle TimerHandle;
-    GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ULS_InputMappingContext::InitializeInput, 3.0f, false);
 }
 
 void ULS_InputMappingContext::InitializeInput()
@@ -29,7 +25,7 @@ void ULS_InputMappingContext::InitializeInput()
         UE_LOG(LogTemp, Error, TEXT("[ULS_InputMappingContext] OwnerCharacter is null (InitializeInput)"));
         return;
     }
-
+    
     APlayerController* PC = Cast<APlayerController>(OwnerCharacter->GetController());
     if (!PC)
     {
@@ -74,7 +70,8 @@ void ULS_InputMappingContext::InitializeInput()
 void ULS_InputMappingContext::BindInput(UEnhancedInputComponent* EnhancedInput)
 {
     if (!EnhancedInput) return;
-
+    UE_LOG(LogTemp, Warning, TEXT("[ULS_InputMappingContext] BindInput"));
+    
     if (IA_UpDown)
         EnhancedInput->BindAction(IA_UpDown, ETriggerEvent::Triggered, this, &ULS_InputMappingContext::OnUpDown);
 
